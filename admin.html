@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Project Monitoring Dashboard</title>
+<link rel="icon" href="assets/img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Ethiopic:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+  <symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+  <symbol id="i-road" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22 9 2M20 22 15 2M12 6v2M12 12v2M12 18v3"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></symbol>
+  <symbol id="i-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 6-6"/></symbol>
+  <symbol id="i-money" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1"/></symbol>
+  </defs>
+</svg>
+
+<div class="app">
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+      <img src="assets/img/logo.png" alt="Bureau emblem">
+      <div><strong>Project Monitoring</strong><small>Transport & Road Development Bureau</small></div>
+    </div>
+    <div class="sb-label">Monitoring</div>
+    <nav class="sb-nav">
+      <a href="#dashboard" data-view="dashboard"><svg class="i"><use href="#i-grid"/></svg>Dashboard</a>
+      <a href="#projects" data-view="projects"><svg class="i"><use href="#i-road"/></svg>Projects</a>
+      <a href="#reports" data-view="reports"><svg class="i"><use href="#i-doc"/></svg>Progress Reports<span class="count" id="navPending">0</span></a>
+      <a href="#issues" data-view="issues"><svg class="i"><use href="#i-alert"/></svg>Issues & Risks<span class="count" id="navIssues">0</span></a>
+      <a href="#contractors" data-view="contractors"><svg class="i"><use href="#i-users"/></svg>Contractors</a>
+    </nav>
+    <div class="sb-label">Actions</div>
+    <nav class="sb-nav">
+      <a href="#new" id="newReportLink"><svg class="i"><use href="#i-plus"/></svg>Submit Monthly Report</a>
+    </nav>
+    <div class="sb-foot">
+      <a href="index.html"><svg class="i"><use href="#i-home"/></svg>Public portal</a>
+      <a href="#" id="resetDemo"><svg class="i"><use href="#i-undo"/></svg>Reset demo data</a>
+    </div>
+  </aside>
+
+  <div class="main">
+    <!-- ============ TOPBAR ============ -->
+    <header class="topbar">
+      <button class="menu-btn" id="menuBtn" aria-label="Menu"><svg class="i"><use href="#i-menu"/></svg></button>
+      <div class="tb-title"><h1 id="viewTitle">Dashboard</h1><p id="viewSub">Fiscal year 2019 E.C. · Reporting month: Hidar</p></div>
+      <label class="tb-search"><svg class="i"><use href="#i-search"/></svg><input id="globalSearch" type="search" placeholder="Search projects…"></label>
+      <button class="icon-btn" id="bellBtn" aria-label="Alerts"><svg class="i"><use href="#i-bell"/></svg><span class="dot"></span></button>
+      <div class="user">
+        <div class="avatar">BH</div>
+        <div><strong>Bureau Admin</strong>
+          <select id="roleSel" aria-label="Role">
+            <option value="bureau">Bureau reviewer</option>
+            <option value="zone">Zone engineer</option>
+            <option value="consultant">Consultant</option>
+            <option value="contractor">Contractor</option>
+          </select></div>
+      </div>
+    </header>
+
+    <main class="content">
+      <!-- ============ DASHBOARD ============ -->
+      <section class="view" id="view-dashboard">
+        <div class="filter-row">
+          <select id="fZone" aria-label="Zone"></select>
+          <select id="fFund" aria-label="Funding source"></select>
+          <select id="fType" aria-label="Project type"></select>
+          <div class="spacer"></div>
+          <button class="btn btn-light" id="exportBtn"><svg class="i"><use href="#i-download"/></svg>Export CSV</button>
+          <a href="#new" class="btn btn-primary"><svg class="i"><use href="#i-plus"/></svg>New Report</a>
+        </div>
+        <div class="kpis" id="kpis"></div>
+        <div class="grid g-2-1">
+          <div class="card">
+            <div class="card-head">
+              <div><h3>Physical progress: planned vs actual</h3><p>Cumulative % of the annual plan, by Ethiopian month</p></div>
+              <div class="legend"><span><i class="dash" style="border-color:var(--s-plan)"></i>Planned</span><span><i style="border-color:var(--s-actual)"></i>Actual</span></div>
+            </div>
+            <div class="chart" id="sCurve"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div><h3>Projects by status</h3><p id="statusSub"></p></div></div>
+            <div class="status-bar" id="statusBar"></div>
+            <div class="status-list" id="statusList"></div>
+          </div>
+        </div>
+        <div class="grid g-2-1">
+          <div class="card">
+            <div class="card-head">
+              <div><h3>Average progress by zone</h3><p>Physical vs financial, %</p></div>
+              <div class="legend"><span><i class="box" style="background:var(--s-phys)"></i>Physical</span><span><i class="box" style="background:var(--s-fin)"></i>Financial</span></div>
+            </div>
+            <div class="chart" id="zoneChart"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div><h3>Awaiting your review</h3><p>Monthly reports pending approval</p></div><a href="#reports" class="btn btn-light btn-sm">View all</a></div>
+            <div id="pendingList"></div>
+          </div>
+        </div>
+        <div class="grid g-1-1">
+          <div class="card">
+            <div class="card-head"><div><h3>Alerts</h3><p>Generated automatically from report data</p></div></div>
+            <div id="alertList"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div><h3>Most delayed projects</h3><p>Largest gap between planned and actual progress</p></div></div>
+            <div id="delayedList"></div>
+          </div>
+        </div>
+        <p class="demo-note">Sample data for demonstration. Connect to the backend API to show live reports.</p>
+      </section>
+
+      <!-- ============ PROJECTS ============ -->
+      <section class="view" id="view-projects">
+        <div class="filter-row">
+          <input type="search" id="pSearch" placeholder="Search project, zone, contractor…">
+          <select id="pZone" aria-label="Zone"></select>
+          <select id="pStatus" aria-label="Status">
+            <option value="all">All statuses</option><option value="on-track">On track</option><option value="at-risk">At risk</option><option value="delayed">Delayed</option><option value="done">Completed</option>
+          </select>
+          <div class="spacer"></div>
+          <button class="btn btn-light" id="exportBtn2"><svg class="i"><use href="#i-download"/></svg>Export CSV</button>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table id="projTable">
+              <thead><tr>
+                <th data-sort="name">Project<span class="arr"></span></th>
+                <th data-sort="zone">Zone<span class="arr"></span></th>
+                <th data-sort="value">Contract value<span class="arr"></span></th>
+                <th data-sort="physical">Physical<span class="arr"></span></th>
+                <th data-sort="financial">Financial<span class="arr"></span></th>
+                <th data-sort="variance">Schedule var.<span class="arr"></span></th>
+                <th data-sort="status">Status<span class="arr"></span></th>
+                <th data-sort="last">Last report<span class="arr"></span></th>
+              </tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ REPORTS ============ -->
+      <section class="view" id="view-reports">
+        <div class="filter-row">
+          <input type="search" id="rSearch" placeholder="Search reports…">
+          <div class="spacer"></div>
+          <a href="#new" class="btn btn-primary"><svg class="i"><use href="#i-plus"/></svg>Submit Monthly Report</a>
+        </div>
+        <div class="card">
+          <div class="tabs" id="rTabs">
+            <button data-tab="pending" class="active">Pending<span class="c"></span></button>
+            <button data-tab="returned">Returned<span class="c"></span></button>
+            <button data-tab="approved">Approved<span class="c"></span></button>
+            <button data-tab="all">All<span class="c"></span></button>
+          </div>
+          <div class="table-wrap">
+            <table id="repTable">
+              <thead><tr><th>Report</th><th>Project</th><th>Period</th><th>Physical (this month)</th><th>Cumulative</th><th>Stage</th><th>Status</th><th>Submitted</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ ISSUES ============ -->
+      <section class="view" id="view-issues">
+        <div class="filter-row">
+          <div class="seg" id="iSeg"><button data-f="open" class="active">Open</button><button data-f="resolved">Resolved</button><button data-f="all">All</button></div>
+          <select id="iSev" aria-label="Severity"><option value="all">All severities</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table id="issueTable">
+              <thead><tr><th>Issue</th><th>Project</th><th>Category</th><th>Severity</th><th>Owner</th><th>Due</th><th>Status</th><th></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ CONTRACTORS ============ -->
+      <section class="view" id="view-contractors">
+        <div class="card">
+          <div class="card-head"><div><h3>Contractor performance</h3><p>Ranked by average schedule variance across active projects</p></div></div>
+          <div class="table-wrap">
+            <table id="conTable">
+              <thead><tr><th>#</th><th>Contractor</th><th>Projects</th><th>Contract value</th><th>Avg physical</th><th>Avg schedule var.</th><th>Reports on time</th><th>Rating</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- ============ DRAWER (project / report / new report) ============ -->
+<div class="overlay" id="overlay"></div>
+<aside class="drawer" id="drawer" aria-modal="true" role="dialog">
+  <div class="dr-head"><div><h2 id="drTitle"></h2><p id="drSub"></p></div><button class="dr-close" id="drClose" aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button></div>
+  <div class="dr-body" id="drBody"></div>
+  <div class="dr-foot" id="drFoot"></div>
+</aside>
+
+<div class="toast" id="toast"><svg class="i"><use href="#i-check"/></svg><span></span></div>
+
+<script type="module" src="/src/js/admin.js"></script>
+</body>
+</html>
