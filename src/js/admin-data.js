@@ -52,7 +52,7 @@
 
   // Hidar (current month) report statuses per project
   const HIDAR = ['pending:1','pending:2','approved','returned:1','approved','pending:0','pending:3','approved','pending:1','pending:2','approved','returned:0','approved','pending:0'];
-  const PHOTOS = ['road-construction','asphalt','bridge','road-safety'];
+  const PHOTOS = ['road-inspection','bridge-site-visit','road-consultation','project-inauguration'];
   const DAYS = ['Hidar 22','Hidar 21','Hidar 20','Hidar 19','Hidar 18','Hidar 16','Hidar 15','Hidar 14','Hidar 12','Hidar 11'];
 
   const reports = [];

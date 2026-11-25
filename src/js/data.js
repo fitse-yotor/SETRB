@@ -1,27 +1,27 @@
 /* ------------------------------------------------------------------
    SAMPLE CONTENT — replace with real items from the Bureau's Facebook
-   page / monitoring system. Images live in assets/img/news/; drop real
-   photos there (e.g. news-1.jpg) and update the `img` paths below.
+   page / monitoring system. Photos live in public/assets/img/news/ (from the
+   Bureau's Facebook page); update the `img` paths below when adding more.
    ------------------------------------------------------------------ */
 window.PORTAL_DATA = {
   projects: [
-    { name:{en:"Sodo – Humbo Asphalt Road Upgrading",am:"የሶዶ – ሁምቦ የአስፋልት መንገድ ማሻሻያ"}, zone:{en:"Wolaita Zone",am:"ወላይታ ዞን"}, km:34, type:{en:"Asphalt",am:"አስፋልት"}, status:"on-track", physical:72, financial:65, contractor:"Contractor A", end:"Jun 2027", img:"assets/img/news/asphalt.svg" },
-    { name:{en:"Arba Minch – Chencha Road Rehabilitation",am:"የአርባ ምንጭ – ጨንቻ መንገድ ጥገና"}, zone:{en:"Gamo Zone",am:"ጋሞ ዞን"}, km:28, type:{en:"Rehabilitation",am:"ጥገና"}, status:"at-risk", physical:48, financial:55, contractor:"Contractor B", end:"Dec 2026", img:"assets/img/news/road-construction.svg" },
-    { name:{en:"Sawla Bridge Construction",am:"የሳውላ ድልድይ ግንባታ"}, zone:{en:"Gofa Zone",am:"ጎፋ ዞን"}, km:0.12, type:{en:"Bridge",am:"ድልድይ"}, status:"on-track", physical:81, financial:76, contractor:"Contractor C", end:"Mar 2027", img:"assets/img/news/bridge.svg" },
-    { name:{en:"Jinka – Key Afer Gravel Road",am:"የጂንካ – ቀይ አፈር የጠጠር መንገድ"}, zone:{en:"South Omo Zone",am:"ደቡብ ኦሞ ዞን"}, km:41, type:{en:"Gravel",am:"ጠጠር"}, status:"delayed", physical:31, financial:44, contractor:"Contractor D", end:"Aug 2026", img:"assets/img/news/road-construction.svg" },
-    { name:{en:"Dilla Town Access Roads",am:"የዲላ ከተማ መዳረሻ መንገዶች"}, zone:{en:"Gedeo Zone",am:"ጌዴኦ ዞን"}, km:12, type:{en:"Asphalt",am:"አስፋልት"}, status:"done", physical:100, financial:98, contractor:"Contractor E", end:"Completed", img:"assets/img/news/asphalt.svg" },
-    { name:{en:"Karat – Konso Rural Road Network",am:"የካራት – ኮንሶ የገጠር መንገድ"}, zone:{en:"Konso Zone",am:"ኮንሶ ዞን"}, km:22, type:{en:"Rural road",am:"የገጠር መንገድ"}, status:"on-track", physical:58, financial:52, contractor:"Contractor F", end:"Feb 2027", img:"assets/img/news/road-safety.svg" }
+    { name:{en:"Sodo – Humbo Asphalt Road Upgrading",am:"የሶዶ – ሁምቦ የአስፋልት መንገድ ማሻሻያ"}, zone:{en:"Wolaita Zone",am:"ወላይታ ዞን"}, km:34, type:{en:"Asphalt",am:"አስፋልት"}, status:"on-track", physical:72, financial:65, contractor:"Contractor A", end:"Jun 2027", img:"assets/img/news/road-consultation.jpg" },
+    { name:{en:"Arba Minch – Chencha Road Rehabilitation",am:"የአርባ ምንጭ – ጨንቻ መንገድ ጥገና"}, zone:{en:"Gamo Zone",am:"ጋሞ ዞን"}, km:28, type:{en:"Rehabilitation",am:"ጥገና"}, status:"at-risk", physical:48, financial:55, contractor:"Contractor B", end:"Dec 2026", img:"assets/img/news/road-inspection.jpg" },
+    { name:{en:"Sawla Bridge Construction",am:"የሳውላ ድልድይ ግንባታ"}, zone:{en:"Gofa Zone",am:"ጎፋ ዞን"}, km:0.12, type:{en:"Bridge",am:"ድልድይ"}, status:"on-track", physical:81, financial:76, contractor:"Contractor C", end:"Mar 2027", img:"assets/img/news/bridge-site-visit.jpg" },
+    { name:{en:"Jinka – Key Afer Gravel Road",am:"የጂንካ – ቀይ አፈር የጠጠር መንገድ"}, zone:{en:"South Omo Zone",am:"ደቡብ ኦሞ ዞን"}, km:41, type:{en:"Gravel",am:"ጠጠር"}, status:"delayed", physical:31, financial:44, contractor:"Contractor D", end:"Aug 2026", img:"assets/img/news/road-inspection.jpg" },
+    { name:{en:"Dilla Town Access Roads",am:"የዲላ ከተማ መዳረሻ መንገዶች"}, zone:{en:"Gedeo Zone",am:"ጌዴኦ ዞን"}, km:12, type:{en:"Asphalt",am:"አስፋልት"}, status:"done", physical:100, financial:98, contractor:"Contractor E", end:"Completed", img:"assets/img/news/project-inauguration.jpg" },
+    { name:{en:"Karat – Konso Rural Road Network",am:"የካራት – ኮንሶ የገጠር መንገድ"}, zone:{en:"Konso Zone",am:"ኮንሶ ዞን"}, km:22, type:{en:"Rural road",am:"የገጠር መንገድ"}, status:"on-track", physical:58, financial:52, contractor:"Contractor F", end:"Feb 2027", img:"assets/img/news/road-consultation.jpg" }
   ],
   news: [
-    { tag:"blue", cat:{en:"Projects",am:"ፕሮጀክቶች"}, date:"Nov 20, 2026", img:"assets/img/news/road-construction.svg",
+    { tag:"blue", cat:{en:"Projects",am:"ፕሮጀክቶች"}, date:"Nov 20, 2026", img:"assets/img/news/road-inspection.jpg",
       title:{en:"Bureau leadership inspects ongoing road projects across the region",am:"የቢሮው አመራር በክልሉ በመካሄድ ላይ ያሉ የመንገድ ፕሮጀክቶችን ጎበኘ"},
       text:{en:"The field visit reviewed physical progress, quality and contractor performance, and set deadlines for resolving outstanding issues.",am:"ጉብኝቱ የፕሮጀክቶቹን የአፈፃፀም ደረጃ፣ ጥራትና የተቋራጮችን አፈፃፀም የገመገመ ሲሆን ለችግሮች የመፍትሔ የጊዜ ገደብ ተቀምጧል።"} },
-    { tag:"green", cat:{en:"Planning",am:"ዕቅድ"}, date:"Nov 14, 2026", img:"assets/img/news/meeting.svg",
-      title:{en:"Quarterly performance review held with zone transport offices",am:"ከዞን ትራንስፖርት መምሪያዎች ጋር የሩብ ዓመት አፈፃፀም ግምገማ ተካሄደ"} },
-    { tag:"red", cat:{en:"Road Safety",am:"የመንገድ ደህንነት"}, date:"Nov 08, 2026", img:"assets/img/news/road-safety.svg",
-      title:{en:"Regional road safety awareness campaign launched",am:"ክልላዊ የመንገድ ደህንነት ግንዛቤ ማስጨበጫ ዘመቻ ተጀመረ"} },
-    { tag:"blue", cat:{en:"Transport",am:"ትራንስፖርት"}, date:"Nov 02, 2026", img:"assets/img/news/public-transport.svg",
-      title:{en:"New public transport routes and fare tariffs announced",am:"አዲስ የሕዝብ ትራንስፖርት መስመሮችና ታሪፍ ይፋ ሆነ"} }
+    { tag:"blue", cat:{en:"Bridges",am:"ድልድዮች"}, date:"Nov 14, 2026", img:"assets/img/news/bridge-site-visit.jpg",
+      title:{en:"Bureau team reviews bridge construction progress on site",am:"የቢሮው ቡድን የድልድይ ግንባታ ሂደትን በቦታው ገመገመ"} },
+    { tag:"green", cat:{en:"Inauguration",am:"ምረቃ"}, date:"Nov 08, 2026", img:"assets/img/news/project-inauguration.jpg",
+      title:{en:"Completed rural road officially inaugurated",am:"የተጠናቀቀ የገጠር መንገድ በይፋ ተመረቀ"} },
+    { tag:"red", cat:{en:"Community",am:"ማኅበረሰብ"}, date:"Nov 02, 2026", img:"assets/img/news/head-field-visit.jpg",
+      title:{en:"Bureau Head discusses road needs with local communities",am:"የቢሮ ኃላፊው ከአካባቢው ማኅበረሰብ ጋር በመንገድ ፍላጎቶች ላይ ተወያዩ"} }
   ],
   tenders: [
     { d:"28", m:"Nov", title:{en:"Construction of gravel road – Lot 3",am:"የጠጠር መንገድ ግንባታ – ሎት 3"}, sub:{en:"Open national bidding · Closes Dec 12",am:"ግልፅ አገር አቀፍ ጨረታ · ታህሳስ 3 ይዘጋል"} },

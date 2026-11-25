@@ -9,7 +9,7 @@ import "./admin-data.js";
   const STATUS_LABEL = { 'on-track': 'On track', 'at-risk': 'At risk', delayed: 'Delayed', done: 'Completed' };
   const STATUS_ICON = { 'on-track': 'i-check', 'at-risk': 'i-clock', delayed: 'i-alert', done: 'i-flag' };
   const STATUS_COLOR = { 'on-track': 'var(--st-ok)', 'at-risk': 'var(--st-warn)', delayed: 'var(--st-bad)', done: 'var(--st-done)' };
-  const KEY = 'pm-demo-v1';
+  const KEY = 'pm-demo-v2';
 
   /* ---------------- helpers ---------------- */
   const $ = s => document.querySelector(s);
@@ -400,7 +400,7 @@ import "./admin-data.js";
   $('#overlay').addEventListener('click', closeDrawer);
   addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
 
-  const photoHTML = (r, p) => (r.localPhotos || r.photos.map(n => `assets/img/news/${n}.svg`)).map((src, k) =>
+  const photoHTML = (r, p) => (r.localPhotos || r.photos.map(n => `assets/img/news/${n}.jpg`)).map((src, k) =>
     `<div class="photo"><img src="${esc(src)}" alt="Site photo ${k + 1}"><span class="geo">${icon('i-pin')}${p.lat}, ${p.lng} · ${esc(MONTHS[r.month])}</span></div>`).join('');
 
   function stepper(r) {
@@ -581,7 +581,7 @@ import "./admin-data.js";
         status: 'pending', stage: 1, submitted: `${MONTHS[CUR]} 24`, submittedBy: p.contractor,
         weather: $('#nrWeather').value, labour: +$('#nrLabour').value || 0, equipment: +$('#nrEquip').value || 0,
         items, narrative: $('#nrNarr').value.trim() || 'No narrative provided.',
-        photos: ['road-construction', 'asphalt'], localPhotos: photos.length ? photos : undefined,
+        photos: ['road-inspection', 'road-consultation'], localPhotos: photos.length ? photos : undefined,
         comments: existing ? [...existing.comments, { by: 'Contractor', text: 'Report revised and resubmitted.', at: `${MONTHS[CUR]} 24`, action: 'resubmitted' }] : []
       };
       if (existing) Object.assign(existing, rep); else state.reports.push(rep);
