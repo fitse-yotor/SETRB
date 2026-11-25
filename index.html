@@ -39,6 +39,12 @@
   <symbol id="i-fb" viewBox="0 0 24 24" fill="currentColor"><path d="M14 8V6c0-.9.6-1 1-1h3V1h-4c-3.3 0-4 2.4-4 4v3H7v4h3v11h4V12h3.4l.6-4z"/></symbol>
   <symbol id="i-tg" viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 3.6 18.7 19c-.2 1-.9 1.3-1.8.8l-5-3.7-2.4 2.3c-.3.3-.5.5-1 .5l.3-5.1 9.3-8.4c.4-.4-.1-.6-.6-.2L6 12.4 1.1 10.9c-1-.3-1.1-1 .2-1.5l19.3-7.4c.9-.3 1.7.2 1.3 1.6z"/></symbol>
   <symbol id="i-yt" viewBox="0 0 24 24" fill="currentColor"><path d="M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12a31 31 0 0 0 .5 4.8 3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-4.8 31 31 0 0 0-.5-4.8zM9.8 15.1V8.9l5.8 3.1z"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 19l-7-7 7-7"/></symbol>
+  <symbol id="i-brief" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2M2 13h20"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></symbol>
 </svg>
 
 <!-- ============ TOP BAR ============ -->
@@ -69,11 +75,11 @@
     <nav class="nav" id="nav">
       <a href="#home" class="active" data-i18n="nav.home">Home</a>
       <a href="#about" data-i18n="nav.about">About</a>
-      <a href="#services" data-i18n="nav.services">Services</a>
       <a href="#projects" data-i18n="nav.projects">Projects</a>
-      <a href="#news" data-i18n="nav.news">News</a>
-      <a href="#notices" data-i18n="nav.notices">Tenders</a>
-      <a href="#contact" data-i18n="nav.contact">Contact</a>
+      <a href="news.html" data-i18n="nav.news">News</a>
+      <a href="tenders.html" data-i18n="nav.notices">Tenders</a>
+      <a href="vacancies.html" data-i18n="nav.vacancies">Vacancies</a>
+      <a href="contact.html" data-i18n="nav.contact">Contact</a>
       <a href="#report" class="btn btn-primary" data-i18n="nav.report">Report an Issue</a>
     </nav>
     <button class="menu-toggle" id="menuToggle" aria-label="Open menu"><span></span></button>
@@ -151,7 +157,7 @@
         <div class="signature">
           <div>
             <!-- TODO: replace with the Bureau Head's full name and title -->
-            <strong data-i18n="dir.name">[Bureau Head Name]</strong>
+            <strong data-i18n="dir.name">Ato Nigatu Dansa</strong>
             <span data-i18n="dir.role">Head, Transport & Road Development Bureau</span>
           </div>
         </div>
@@ -210,6 +216,7 @@
       <h2 data-i18n="news.title">News & updates from the Bureau</h2>
     </div>
     <div class="news-grid" id="newsGrid"></div>
+    <div class="section-cta"><a href="news.html" class="btn btn-outline"><span data-i18n="news.all">View all news</span><svg><use href="#i-arrow"/></svg></a></div>
   </div>
 </section>
 
@@ -219,10 +226,12 @@
     <div class="notice-box reveal">
       <h3><span class="ic ic-blue"><svg><use href="#i-doc"/></svg></span><span data-i18n="tn.title">Tenders & Procurement</span></h3>
       <div id="tenderList"></div>
+      <a href="tenders.html" class="read-more" style="margin-top:14px"><span data-i18n="tn.all">All tenders</span><svg><use href="#i-arrow"/></svg></a>
     </div>
     <div class="notice-box reveal">
-      <h3><span class="ic ic-red"><svg><use href="#i-bell"/></svg></span><span data-i18n="an.title">Announcements</span></h3>
+      <h3><span class="ic ic-green"><svg><use href="#i-brief"/></svg></span><span data-i18n="an.title">Vacancies</span></h3>
       <div id="announceList"></div>
+      <a href="vacancies.html" class="read-more" style="margin-top:14px"><span data-i18n="vc.all">All vacancies</span><svg><use href="#i-arrow"/></svg></a>
     </div>
   </div>
 </section>
@@ -290,6 +299,7 @@
       <div class="contact-card reveal"><div class="ic ic-red"><svg><use href="#i-mail"/></svg></div><h4 data-i18n="ct.email">Email</h4><p>info@setrb.gov.et</p></div>
       <div class="contact-card reveal"><div class="ic ic-navy"><svg><use href="#i-clock"/></svg></div><h4 data-i18n="ct.hours">Working Hours</h4><p data-i18n="top.hours">Mon – Fri · 8:30 – 5:30</p></div>
     </div>
+    <div class="section-cta"><a href="contact.html" class="btn btn-primary"><span data-i18n="ct.send">Send us a message</span><svg><use href="#i-send"/></svg></a></div>
   </div>
 </section>
 </main>
@@ -307,7 +317,7 @@
           <a href="#" aria-label="YouTube"><svg><use href="#i-yt"/></svg></a>
         </div>
       </div>
-      <div><h5 data-i18n="ft.quick">Quick Links</h5><ul><li><a href="#about" data-i18n="nav.about">About</a></li><li><a href="#projects" data-i18n="nav.projects">Projects</a></li><li><a href="#news" data-i18n="nav.news">News</a></li><li><a href="#notices" data-i18n="nav.notices">Tenders</a></li></ul></div>
+      <div><h5 data-i18n="ft.quick">Quick Links</h5><ul><li><a href="#about" data-i18n="nav.about">About</a></li><li><a href="#projects" data-i18n="nav.projects">Projects</a></li><li><a href="news.html" data-i18n="nav.news">News</a></li><li><a href="tenders.html" data-i18n="nav.notices">Tenders</a></li><li><a href="vacancies.html" data-i18n="nav.vacancies">Vacancies</a></li><li><a href="contact.html" data-i18n="nav.contact">Contact</a></li></ul></div>
       <div><h5 data-i18n="ft.services">Services</h5><ul><li><a href="#services" data-i18n="s3.t">Public Transport</a></li><li><a href="#services" data-i18n="s4.t">Freight Operator Licensing</a></li><li><a href="#services" data-i18n="s5.t">Driver & Vehicle Services</a></li><li><a href="#report" data-i18n="nav.report">Report an Issue</a></li></ul></div>
       <div><h5 data-i18n="ft.partners">Partners</h5><ul><li>Ministry of Transport & Logistics</li><li>Ethiopian Roads Administration</li><li>Ethiopian Road Fund</li><li>South Ethiopia Regional State</li></ul></div>
     </div>

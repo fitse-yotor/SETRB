@@ -1,5 +1,7 @@
 import "../css/admin.css";
 import "./admin-data.js";
+import { createCMS } from "./admin-cms.js";
+import { requestSummary, mdToHtml } from "./admin-ai.js";
 import { currentUser, logout, getUsers, saveUsers, getComplaints, saveComplaints, REGIONS, ROLES, COMPLAINT_TYPES, COMPLAINT_STATUS, scopeLabel, resetShared, fmtDate } from "./shared.js";
 (function () {
   'use strict';
@@ -51,6 +53,7 @@ import { currentUser, logout, getUsers, saveUsers, getComplaints, saveComplaints
   const complaintInScope = c => role === 'bureau' || (role === 'zone' && c.zone === ME.zone) || (role === 'woreda' && c.zone === ME.zone && c.woreda === ME.woreda);
   const canComplaints = ['bureau', 'zone', 'woreda'].includes(role);
   const canAccounts = ['bureau', 'zone'].includes(role);
+  const canCMS = role === 'bureau';
 
   /* ---------------- derived project metrics ---------------- */
   const projById = id => D.projects.find(p => p.id === id);
@@ -343,6 +346,8 @@ import { currentUser, logout, getUsers, saveUsers, getComplaints, saveComplaints
     const iN = state.issues.filter(i => i.status === 'open' && visible(i.projectId)).length;
     const cN = canComplaints ? getComplaints().filter(c => complaintInScope(c) && ['received', 'assigned'].includes(c.status)).length : 0;
     $('#navComplaints').textContent = cN; $('#navComplaints').style.display = cN ? '' : 'none';
+    const mN = canCMS ? CMS.unread() : 0;
+    $('#navMessages').textContent = mN; $('#navMessages').style.display = mN ? '' : 'none';
     $('#navIssues').textContent = iN; $('#navIssues').style.display = iN ? '' : 'none';
   }
 
@@ -477,6 +482,7 @@ import { currentUser, logout, getUsers, saveUsers, getComplaints, saveComplaints
     const canAct = r.status === 'pending' && ROLE_STAGE[role] === r.stage;
     const canResubmit = r.status === 'returned' && canSubmit;
     const body = `
+      <div class="dr-sec"><button class="btn btn-light btn-sm" id="aiReportBtn">${icon('i-spark')}Summarize with AI</button><div id="aiReportOut" class="ai-out hidden" style="margin-top:12px"></div></div>
       <div class="dr-sec"><h4>Approval workflow</h4>${stepper(r)}
         ${r.status === 'pending' && !canAct ? `<p style="font-size:.78rem;color:var(--muted);margin-top:8px">Waiting on <b>${esc(STEPS[r.stage])}</b>. Only that office can act on this report now.</p>` : ''}
       </div>
@@ -505,6 +511,15 @@ import { currentUser, logout, getUsers, saveUsers, getComplaints, saveComplaints
     if (canAct) foot = `<button class="btn btn-red" data-act="return" data-id="${r.id}">${icon('i-undo')}Return for correction</button><button class="btn btn-green" data-act="approve" data-id="${r.id}">${icon('i-check')}${r.stage === 3 ? 'Final approve' : 'Verify & forward'}</button>`;
     else if (canResubmit) foot = `<button class="btn btn-primary" data-act="resubmit" data-id="${r.id}">${icon('i-upload')}Resubmit report</button>`;
     openDrawer(`${r.id} · ${MONTHS[r.month]} report`, p.name, body, foot);
+    $('#aiReportBtn').addEventListener('click', () => runAI($('#aiReportBtn'), $('#aiReportOut'), 'report', {
+      project: { id: p.id, name: p.name, zone: p.zone, woreda: p.woreda, type: p.type, lengthKm: p.km, contractor: p.contractor, consultant: p.consultant, contractValueMillionETB: p.value, completionDate: p.end, plannedPhysicalToDate: p.plan[r.month] },
+      report: { id: r.id, period: `${MONTHS[r.month]} ${D.FY}`, status: r.status, waitingOn: r.status === 'pending' ? STEPS[r.stage] : null,
+        physicalThisMonth: r.physThis, physicalCumulative: r.physCum, financialCumulative: r.finCum, amountCertifiedETB: r.certified,
+        weather: r.weather, labourOnSite: r.labour, equipmentUnits: r.equipment,
+        workItems: r.items.map(it => ({ item: it.name, weightPct: it.weight, previousPct: it.prev, cumulativePct: it.now })),
+        narrative: r.narrative, comments: r.comments.map(c => ({ by: c.by, text: c.text })) },
+      openIssues: state.issues.filter(i => i.projectId === p.id && i.status === 'open').map(i => ({ title: i.title, severity: i.sev, owner: i.owner, due: i.due }))
+    }, 'en'));
   }
 
   function act(kind, id) {
@@ -817,11 +832,50 @@ import { currentUser, logout, getUsers, saveUsers, getComplaints, saveComplaints
   });
 
   /* ---------------- role-based navigation ---------------- */
-  [['#sbAdminLabel', canAccounts], ['#sbAdminNav', canAccounts], ['#sbCitizenLabel', canComplaints], ['#navComplaints', canComplaints], ['#sbActionsLabel', canSubmit], ['#sbActionsNav', canSubmit]]
+  [['#sbAdminLabel', canAccounts], ['#sbAdminNav', canAccounts], ['#sbWebLabel', canCMS], ['#sbWebNav', canCMS], ['#sbCitizenLabel', canComplaints], ['#navComplaints', canComplaints], ['#sbActionsLabel', canSubmit], ['#sbActionsNav', canSubmit]]
     .forEach(([sel, show]) => { if (!show) $(sel).classList.add('hidden'); });
   if (!canComplaints) $('a[data-view="complaints"]').classList.add('hidden');
   $$('a[href="#new"]').forEach(a => a.classList.toggle('hidden', !canSubmit));
   if (role === 'zone' || role === 'woreda') { $('#fZone').disabled = true; $('#pZone').disabled = true; }
+
+  /* =================================================================
+     AI SUMMARY (backend → Claude API)
+     ================================================================= */
+  async function runAI(btn, out, kind, data, lang) {
+    btn.disabled = true;
+    out.classList.remove('hidden');
+    out.innerHTML = '<div class="ai-loading"><span class="spinner"></span>Writing the summary… this can take up to a minute.</div>';
+    try {
+      const r = await requestSummary(kind, data, lang);
+      out.innerHTML = mdToHtml(r.summary) + `<div class="ai-meta"><span>AI-generated from ${kind === 'report' ? 'this report' : 'the projects in the current filter'} · ${esc(r.model || '')} · ${esc(new Date().toLocaleString('en-GB'))}${r.truncated ? ' · cut short' : ''}</span>
+        <button class="btn btn-light btn-sm ai-copy">${icon('i-copy')}Copy</button></div>`;
+      out.querySelector('.ai-copy').addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(r.summary); toast('Summary copied'); } catch (e) { toast('Copy failed'); }
+      });
+    } catch (e) {
+      out.innerHTML = `<div class="ai-error">${esc(e.message)}</div>`;
+    } finally { btn.disabled = false; }
+  }
+  function portfolioData() {
+    const list = filtered();
+    const totalV = list.reduce((s, x) => s + x.p.value, 0) || 1;
+    const wAvg = k => r1(list.reduce((s, x) => s + x.m[k] * x.p.value, 0) / totalV);
+    const ids = new Set(list.map(x => x.p.id));
+    const reps = state.reports.filter(r => ids.has(r.projectId));
+    return {
+      fiscalYear: D.FY, reportingMonth: MONTHS[CUR], preparedFor: `${ME.name} (${scopeLabel(ME)})`,
+      filters: { zone: $('#fZone').value, funding: $('#fFund').value, type: $('#fType').value },
+      totals: { projects: list.length, lengthKm: r1(list.reduce((s, x) => s + x.p.km, 0)), contractValueMillionETB: totalV,
+        avgPhysicalPct: wAvg('physical'), avgPlannedPct: wAvg('planned'), avgFinancialPct: wAvg('financial'),
+        byStatus: Object.fromEntries(Object.keys(STATUS_LABEL).map(k => [STATUS_LABEL[k], list.filter(x => x.m.status === k).length])) },
+      projects: list.map(({ p, m }) => ({ name: p.name, zone: p.zone, woreda: p.woreda, type: p.type, contractor: p.contractor, valueMillionETB: p.value,
+        physicalPct: m.physical, plannedPct: m.planned, variancePts: m.variance, financialPct: m.financial, status: STATUS_LABEL[m.status],
+        lastApprovedMonth: MONTHS[m.lastMonth], currentMonthReport: m.current ? m.current.status : 'not submitted' })),
+      reports: { pending: reps.filter(r => r.status === 'pending').length, returned: reps.filter(r => r.status === 'returned').length },
+      openIssues: state.issues.filter(i => ids.has(i.projectId) && i.status === 'open').map(i => ({ title: i.title, project: projById(i.projectId).name, severity: i.sev, owner: i.owner, due: i.due }))
+    };
+  }
+  $('#aiBtn').addEventListener('click', () => runAI($('#aiBtn'), $('#aiOut'), 'portfolio', portfolioData(), $('#aiLang').value));
 
   /* ---------------- global click delegation ---------------- */
   document.addEventListener('click', e => {
@@ -846,6 +900,8 @@ import { currentUser, logout, getUsers, saveUsers, getComplaints, saveComplaints
   $('#exportBtn2').addEventListener('click', exportCSV);
 
   /* ---------------- routing ---------------- */
+  const CMS = createCMS({ $, esc, icon, openDrawer, closeDrawer, toast });
+  CMS.onChange(updateBadges);
   const TITLES = {
     dashboard: ['Dashboard', `Fiscal year ${D.FY} · Reporting month: ${MONTHS[CUR]}`],
     projects: ['Projects', 'All regional road and bridge projects'],
@@ -853,6 +909,7 @@ import { currentUser, logout, getUsers, saveUsers, getComplaints, saveComplaints
     issues: ['Issues & Risks', 'Problems blocking project delivery'],
     contractors: ['Contractors', 'Performance across active projects'],
     complaints: ['Complaints', 'Citizen complaints from the public portal'],
+    ...Object.fromEntries(Object.entries(CMS.views).map(([k, v]) => [k, [v.title, v.sub]])),
     accounts: ['Accounts', role === 'zone' ? `Woreda office accounts in ${ME.zone} Zone` : 'Bureau, zone, woreda, consultant and contractor accounts']
   };
   let currentView = 'dashboard';
@@ -860,7 +917,7 @@ import { currentUser, logout, getUsers, saveUsers, getComplaints, saveComplaints
     const h = location.hash.slice(1) || 'dashboard';
     if (h === 'new') { if (!$('#drawer').classList.contains('show')) openNewReport(); return; }
     let v = TITLES[h] ? h : 'dashboard';
-    if ((v === 'complaints' && !canComplaints) || (v === 'accounts' && !canAccounts)) v = 'dashboard';
+    if ((v === 'complaints' && !canComplaints) || (v === 'accounts' && !canAccounts) || (CMS.views[v] && !canCMS)) v = 'dashboard';
     currentView = v;
     $$('.view').forEach(s => s.classList.toggle('active', s.id === 'view-' + v));
     $$('.sb-nav a[data-view]').forEach(a => a.classList.toggle('active', a.dataset.view === v));
@@ -869,6 +926,7 @@ import { currentUser, logout, getUsers, saveUsers, getComplaints, saveComplaints
     renderView(v); scrollTo(0, 0);
   }
   function renderView(v) {
+    if (CMS.views[v]) return CMS.render(v);
     ({ dashboard: renderDashboard, projects: renderProjects, reports: renderReports, issues: renderIssues, contractors: renderContractors, complaints: renderComplaints, accounts: renderAccounts })[v]();
   }
   function renderAll() { renderView(currentView); updateBadges(); }

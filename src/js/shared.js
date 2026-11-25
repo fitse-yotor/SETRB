@@ -134,7 +134,7 @@ export function findComplaint(id) {
   return getComplaints().find(c => c.id.toUpperCase() === String(id).trim().toUpperCase()) || null;
 }
 export function resetShared() {
-  try { [K_USERS, K_COMPLAINTS].forEach(k => localStorage.removeItem(k)); } catch (e) {}
+  try { [K_USERS, K_COMPLAINTS, 'setrb-content-v1', 'setrb-messages-v1'].forEach(k => localStorage.removeItem(k)); } catch (e) {}
 }
 
 export const fmtDate = iso => {
@@ -157,3 +157,45 @@ export function shrinkImage(file, max = 900, q = .7) {
     img.src = url;
   });
 }
+
+/* =================================================================
+   Website content (news, tenders, vacancies) and contact messages
+   ================================================================= */
+import { SEED_NEWS, SEED_TENDERS, SEED_VACANCIES, SEED_MESSAGES } from './content-seed.js';
+const K_CONTENT = 'setrb-content-v1', K_MESSAGES = 'setrb-messages-v1';
+
+export function getContent(type) {
+  let c = read(K_CONTENT, null);
+  if (!c || typeof c !== 'object') { c = { news: SEED_NEWS, tenders: SEED_TENDERS, vacancies: SEED_VACANCIES }; write(K_CONTENT, c); }
+  return c[type] || [];
+}
+export function saveContent(type, list) {
+  const c = read(K_CONTENT, null) || { news: SEED_NEWS, tenders: SEED_TENDERS, vacancies: SEED_VACANCIES };
+  c[type] = list;
+  return write(K_CONTENT, c);
+}
+export function getMessages() {
+  let m = read(K_MESSAGES, null);
+  if (!Array.isArray(m)) { m = SEED_MESSAGES; write(K_MESSAGES, m); }
+  return m;
+}
+export function saveMessages(m) { return write(K_MESSAGES, m); }
+export function addMessage(data) {
+  const list = getMessages();
+  const m = { id: 'm-' + Date.now().toString(36), at: new Date().toISOString(), read: false, ...data };
+  list.unshift(m); saveMessages(list);
+  return m;
+}
+export function resetContent() {
+  try { [K_CONTENT, K_MESSAGES].forEach(k => localStorage.removeItem(k)); } catch (e) {}
+}
+
+/* localized text: {en, am} → string (falls back to English) */
+export const L = (o, lang) => (o && (o[lang] || o.en)) || '';
+export const newId = p => p + '-' + Date.now().toString(36) + Math.floor(Math.random() * 1e3);
+export const isOpen = (closingIso) => !closingIso || new Date(closingIso) >= new Date(new Date().toDateString());
+export const daysLeft = iso => Math.ceil((new Date(iso) - new Date()) / 864e5);
+export const fmtDay = (iso, lang = 'en') => {
+  const d = new Date(iso);
+  return isNaN(d) ? '' : d.toLocaleDateString(lang === 'am' ? 'en-GB' : 'en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+};

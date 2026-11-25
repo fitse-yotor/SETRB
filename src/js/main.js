@@ -1,6 +1,6 @@
 import "../css/style.css";
 import "./data.js";
-import { REGIONS, ZONE_AM, COMPLAINT_TYPES, COMPLAINT_STATUS, addComplaint, findComplaint, fmtDate, shrinkImage } from "./shared.js";
+import { REGIONS, ZONE_AM, COMPLAINT_TYPES, COMPLAINT_STATUS, addComplaint, findComplaint, fmtDate, shrinkImage, getContent, L, fmtDay, isOpen } from "./shared.js";
 (function () {
   const D = window.PORTAL_DATA;
   let lang = 'en';
@@ -24,7 +24,7 @@ import { REGIONS, ZONE_AM, COMPLAINT_TYPES, COMPLAINT_STATUS, addComplaint, find
     'val.1':'ግልፅነት','val.2':'ተጠያቂነት','val.3':'ጥራት','val.4':'ሕዝባዊ አገልግሎት','val.5':'ፈጠራ',
     'dir.eyebrow':'የቢሮ ኃላፊው መልዕክት','dir.quote':'የምንገነባው እያንዳንዱ መንገድ ለገበያ፣ ለትምህርት ቤት፣ ለጤና ተቋምና ለዕድል በር ይከፍታል።',
     'dir.text':'ይህ ፖርታል የግልፅነት ቁርጠኝነታችን አካል ነው። ዜጎች፣ ተቋራጮችና አጋሮች የእያንዳንዱን የክልል መንገድ ፕሮጀክት ሂደት መከታተል፣ አገልግሎቶቻችንን ማግኘትና አስተያየታቸውን በቀጥታ ለቢሮው ማድረስ ይችላሉ።',
-    'dir.name':'[የቢሮ ኃላፊ ስም]','dir.role':'ኃላፊ፣ ትራንስፖርትና መንገድ ልማት ቢሮ',
+    'dir.name':'ክቡር አቶ ንጋቱ ዳንሳ','dir.role':'ኃላፊ፣ ትራንስፖርትና መንገድ ልማት ቢሮ',
     'svc.eyebrow':'የምንሰራው','svc.title':'ለዜጎች፣ ለኦፕሬተሮችና ለአጋሮች የሚሰጡ አገልግሎቶች','svc.text':'ከመንገድ ግንባታ ክትትል እስከ ትራንስፖርት ፈቃድ — የቢሮውን ዋና ዋና አገልግሎቶች በአንድ ቦታ ያግኙ።',
     's1.t':'የመንገድ ግንባታና ማሻሻያ','s1.d':'የክልል የአስፋልትና የጠጠር መንገዶች ዕቅድ፣ ዲዛይንና የግንባታ ቁጥጥር።',
     's2.t':'የገጠር መንገዶችና ድልድዮች','s2.d':'ከዞኖችና ወረዳዎች ጋር በመተባበር ዓመቱን ሙሉ የሚያገለግሉ የገጠር መንገዶችና ድልድዮች።',
@@ -37,7 +37,7 @@ import { REGIONS, ZONE_AM, COMPLAINT_TYPES, COMPLAINT_STATUS, addComplaint, find
     'proj.demo':'ለማሳያ የቀረበ ናሙና መረጃ — ከክትትል ሲስተሙ በሚመጣ ቀጥታ መረጃ ይተካል።',
     'p.phys':'አካላዊ አፈፃፀም','p.fin':'የፋይናንስ አፈፃፀም','p.end':'ማጠናቀቂያ','p.empty':'ምንም ፕሮጀክት አልተገኘም።',
     'news.eyebrow':'ወቅታዊ ዜናዎች','news.title':'ከቢሮው የተገኙ ዜናዎችና መረጃዎች',
-    'tn.title':'ጨረታዎችና ግዢ','an.title':'ማስታወቂያዎች',
+    'tn.title':'ጨረታዎችና ግዢ','an.title':'የሥራ ማስታወቂያዎች','nav.vacancies':'የሥራ ማስታወቂያ','news.all':'ሁሉንም ዜናዎች ይመልከቱ','vc.all':'ሁሉም የሥራ ማስታወቂያዎች','tn.all':'ሁሉም ጨረታዎች','ct.send':'መልዕክት ይላኩልን','rm':'ተጨማሪ ያንብቡ','closes':'የሚዘጋበት','deadline':'ማብቂያ','pos':'ቦታ',
     'rp.eyebrow':'የዜጎች አስተያየት','rp.title':'የመንገድ ችግር አይተዋል? ለቢሮው ያሳውቁ።','rp.text':'ጉድጓዶች፣ የተጎዱ ድልድዮች፣ የተዘጉ የውሃ መውረጃዎች፣ ፍትሐዊ ያልሆነ ታሪፍ ወይም የአገልግሎት ቅሬታ — እያንዳንዱ ጥቆማ የመከታተያ ቁጥር ይሰጠዋል።',
     'rp.l1':'የመከታተያ ቁጥር ወዲያውኑ ያግኙ','rp.l2':'ለሚመለከተው የዞንና የወረዳ ጽ/ቤት ይተላለፋል','rp.l3':'በመከታተያ ቁጥርዎ ምላሹን በኦንላይን ይከታተሉ',
     'rp.name':'ሙሉ ስም','rp.phone':'ስልክ','rp.type':'የችግሩ አይነት','rp.zone':'ዞን / ወረዳ','rp.desc':'ዝርዝር መግለጫ','rp.submit':'ጥቆማ ይላኩ',
@@ -53,7 +53,7 @@ import { REGIONS, ZONE_AM, COMPLAINT_TYPES, COMPLAINT_STATUS, addComplaint, find
     'ft.quick':'ፈጣን ማስፈንጠሪያዎች','ft.services':'አገልግሎቶች','ft.partners':'አጋሮች',
     'ft.copy':'የደቡብ ኢትዮጵያ ክልል ትራንስፖርትና መንገድ ልማት አስተዳደር ቢሮ። መብቱ በሕግ የተጠበቀ ነው።','ft.made':'ወላይታ ሶዶ፣ ኢትዮጵያ'
   };
-  const EN_EXTRA = { 'p.phys':'Physical progress','p.fin':'Financial progress','p.end':'Completion','p.empty':'No projects match your search.','rp.ok':'Thank you — your complaint was received. Tracking number: ',
+  const EN_EXTRA = { 'p.phys':'Physical progress','p.fin':'Financial progress','p.end':'Completion','p.empty':'No projects match your search.','rm':'Read more','closes':'Closes','deadline':'Deadline','pos':'positions','rp.ok':'Thank you — your complaint was received. Tracking number: ',
     'rp.req':'Please fill in all required fields.','rp.badPhone':'Please enter a valid phone number.','rp.keep':'Keep this number — use it in “Track my complaint” to follow the response.',
     'rp.notFound':'No complaint found with this tracking number. Please check it and try again.','rp.selZone':'Select zone','rp.submitted':'Submitted','rp.assigned':'Assigned to',
     'rp.woredaOffice':'Woreda Transport Office','rp.updates':'Updates','rp.sending':'Sending…','rp.photoAdded':'Photo attached' };
@@ -117,28 +117,38 @@ import { REGIONS, ZONE_AM, COMPLAINT_TYPES, COMPLAINT_STATUS, addComplaint, find
   /* ---------------- News ---------------- */
   const cal = '<svg><use href="#i-cal"/></svg>';
   function renderNews() {
-    const [f, ...rest] = D.news;
+    const items = getContent('news').filter(n => n.published !== false).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4);
+    if (!items.length) { document.getElementById('newsGrid').innerHTML = ''; return; }
+    const [f, ...rest] = items, href = n => `news-detail.html?id=${encodeURIComponent(n.id)}`;
     document.getElementById('newsGrid').innerHTML = `
-      <a href="#news" class="news-feature reveal in">
-        <img src="${f.img}" alt="">
-        <div class="body"><span class="tag ${f.tag}">${f.cat[lang]}</span><h3>${f.title[lang]}</h3><p>${f.text[lang]}</p><span class="news-date">${cal}${f.date}</span></div>
+      <a href="${href(f)}" class="news-feature reveal in">
+        <img src="${escH(f.img)}" alt="">
+        <div class="body"><span class="tag ${escH(f.tag)}">${escH(L(f.cat, lang))}</span><h3>${escH(L(f.title, lang))}</h3><p>${escH(L(f.summary, lang))}</p>
+          <span class="news-date">${cal}${escH(fmtDay(f.date))}</span> <span class="read-more" style="color:#fff;margin-left:14px">${escH(t('rm'))}<svg><use href="#i-arrow"/></svg></span></div>
       </a>
       <div class="news-list">${rest.map(n => `
-        <a href="#news" class="news-item reveal in">
-          <div class="thumb"><img src="${n.img}" alt=""></div>
-          <div><span class="tag ${n.tag}">${n.cat[lang]}</span><h4>${n.title[lang]}</h4><span class="news-date">${cal}${n.date}</span></div>
+        <a href="${href(n)}" class="news-item reveal in">
+          <div class="thumb"><img src="${escH(n.img)}" alt=""></div>
+          <div><span class="tag ${escH(n.tag)}">${escH(L(n.cat, lang))}</span><h4>${escH(L(n.title, lang))}</h4><span class="news-date">${cal}${escH(fmtDay(n.date))}</span></div>
         </a>`).join('')}
       </div>`;
   }
 
   /* ---------------- Notices ---------------- */
-  const noticeHTML = arr => arr.map(n => `
-    <div class="notice"><div class="d"><b>${n.d}</b><small>${n.m}</small></div>
-      <div><h4>${n.title[lang]}</h4><p>${n.sub[lang]}</p></div>
-      <a href="#notices" class="dl" aria-label="Download"><svg><use href="#i-download"/></svg></a></div>`).join('');
+  const MON = d => new Date(d).toLocaleDateString('en-GB', { month: 'short' });
+  const noticeHTML = (arr, kind) => arr.map(n => {
+    const date = kind === 't' ? n.closing : n.deadline;
+    const href = kind === 't' ? `tender-detail.html?id=${encodeURIComponent(n.id)}` : `vacancy-detail.html?id=${encodeURIComponent(n.id)}`;
+    const sub = kind === 't' ? `${n.ref} · ${t('closes')} ${fmtDay(n.closing)}` : `${n.dept} · ${n.positions} ${t('pos')} · ${t('deadline')} ${fmtDay(n.deadline)}`;
+    return `<a class="notice" href="${href}"><div class="d"><b>${new Date(date).getDate()}</b><small>${MON(date)}</small></div>
+      <div><h4>${escH(L(n.title, lang))}</h4><p>${escH(sub)}</p></div>
+      <span class="dl" aria-hidden="true"><svg><use href="#i-arrow"/></svg></span></a>`;
+  }).join('') || '<p style="color:var(--muted);font-size:.9rem;padding:12px 0">—</p>';
   function renderNotices() {
-    document.getElementById('tenderList').innerHTML = noticeHTML(D.tenders);
-    document.getElementById('announceList').innerHTML = noticeHTML(D.announcements);
+    const tenders = getContent('tenders').filter(x => x.active !== false && isOpen(x.closing)).sort((a, b) => a.closing.localeCompare(b.closing)).slice(0, 3);
+    const vac = getContent('vacancies').filter(x => x.active !== false && isOpen(x.deadline + 'T23:59')).sort((a, b) => a.deadline.localeCompare(b.deadline)).slice(0, 3);
+    document.getElementById('tenderList').innerHTML = noticeHTML(tenders, 't');
+    document.getElementById('announceList').innerHTML = noticeHTML(vac, 'v');
   }
 
   /* ---------------- Header / menu ---------------- */
@@ -149,7 +159,7 @@ import { REGIONS, ZONE_AM, COMPLAINT_TYPES, COMPLAINT_STATUS, addComplaint, find
   document.querySelectorAll('.nav a').forEach(a => a.addEventListener('click', () => document.body.classList.remove('menu-open')));
 
   // active nav link on scroll
-  const links = [...document.querySelectorAll('.nav a:not(.btn)')];
+  const links = [...document.querySelectorAll('.nav a:not(.btn)')].filter(l => l.getAttribute('href').startsWith('#'));
   const secObs = new IntersectionObserver(es => es.forEach(e => {
     if (e.isIntersecting) links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + e.target.id));
   }), { rootMargin: '-45% 0px -50% 0px' });
