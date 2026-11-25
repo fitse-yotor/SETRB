@@ -33,6 +33,9 @@
   <symbol id="i-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></symbol>
   <symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol>
   <symbol id="i-flag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1"/></symbol>
+  <symbol id="i-msg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.8-9.8M17 6l3 3M14 9l2 2"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
   </defs>
 </svg>
 
@@ -51,8 +54,16 @@
       <a href="#issues" data-view="issues"><svg class="i"><use href="#i-alert"/></svg>Issues & Risks<span class="count" id="navIssues">0</span></a>
       <a href="#contractors" data-view="contractors"><svg class="i"><use href="#i-users"/></svg>Contractors</a>
     </nav>
-    <div class="sb-label">Actions</div>
+    <div class="sb-label" id="sbCitizenLabel">Citizens</div>
     <nav class="sb-nav">
+      <a href="#complaints" data-view="complaints"><svg class="i"><use href="#i-msg"/></svg>Complaints<span class="count" id="navComplaints">0</span></a>
+    </nav>
+    <div class="sb-label" id="sbAdminLabel">Administration</div>
+    <nav class="sb-nav" id="sbAdminNav">
+      <a href="#accounts" data-view="accounts"><svg class="i"><use href="#i-key"/></svg>Accounts</a>
+    </nav>
+    <div class="sb-label" id="sbActionsLabel">Actions</div>
+    <nav class="sb-nav" id="sbActionsNav">
       <a href="#new" id="newReportLink"><svg class="i"><use href="#i-plus"/></svg>Submit Monthly Report</a>
     </nav>
     <div class="sb-foot">
@@ -68,15 +79,18 @@
       <div class="tb-title"><h1 id="viewTitle">Dashboard</h1><p id="viewSub">Fiscal year 2019 E.C. · Reporting month: Hidar</p></div>
       <label class="tb-search"><svg class="i"><use href="#i-search"/></svg><input id="globalSearch" type="search" placeholder="Search projects…"></label>
       <button class="icon-btn" id="bellBtn" aria-label="Alerts"><svg class="i"><use href="#i-bell"/></svg><span class="dot"></span></button>
-      <div class="user">
-        <div class="avatar">BH</div>
-        <div><strong>Bureau Admin</strong>
-          <select id="roleSel" aria-label="Role">
-            <option value="bureau">Bureau reviewer</option>
-            <option value="zone">Zone engineer</option>
-            <option value="consultant">Consultant</option>
-            <option value="contractor">Contractor</option>
-          </select></div>
+      <span class="scope-chip" id="scopeChip"><svg class="i"><use href="#i-pin"/></svg><span></span></span>
+      <div class="user user-menu">
+        <button class="user-btn" id="userBtn" aria-haspopup="true">
+          <div class="avatar" id="avatar">--</div>
+          <div><strong id="userName"></strong><small id="userRole"></small></div>
+        </button>
+        <div class="dropdown" id="userDropdown">
+          <div class="dd-head"><b id="ddName"></b><small id="ddScope"></small></div>
+          <button id="ddPassword"><svg class="i"><use href="#i-key"/></svg>Change password</button>
+          <a href="index.html"><svg class="i"><use href="#i-home"/></svg>Public portal</a>
+          <button id="logoutBtn"><svg class="i"><use href="#i-out"/></svg>Sign out</button>
+        </div>
       </div>
     </header>
 
@@ -211,6 +225,43 @@
               <tbody></tbody>
             </table>
           </div>
+        </div>
+      </section>
+      <!-- ============ COMPLAINTS ============ -->
+      <section class="view" id="view-complaints">
+        <div class="stat-chips" id="cChips"></div>
+        <div class="filter-row">
+          <input type="search" id="cSearch" placeholder="Search tracking no., name, location…">
+          <select id="cType" aria-label="Type"></select>
+          <select id="cZone" aria-label="Zone"></select>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table id="cTable">
+              <thead><tr><th>Tracking no.</th><th>Complaint</th><th>Location</th><th>Assigned to</th><th>Status</th><th>Submitted</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ ACCOUNTS ============ -->
+      <section class="view" id="view-accounts">
+        <div class="filter-row">
+          <input type="search" id="aSearch" placeholder="Search name or username…">
+          <select id="aRole" aria-label="Role"></select>
+          <select id="aZone" aria-label="Zone"></select>
+          <div class="spacer"></div>
+          <button class="btn btn-primary" id="newAccountBtn"><svg class="i"><use href="#i-plus"/></svg>New account</button>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table id="aTable">
+              <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Zone / Woreda</th><th>Phone</th><th>Status</th><th></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <p class="demo-note" style="text-align:left">Demo: accounts are stored in this browser only. In production, accounts and passwords are managed by the backend.</p>
         </div>
       </section>
     </main>

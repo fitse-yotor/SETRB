@@ -50,6 +50,10 @@
     };
   });
 
+  // woreda responsible for each project (same order as RAW)
+  ['Humbo','Chencha','Demba Gofa','Debub Ari','Dilla Zuria','Kena','Damot Gale','Soyama','Geze Gofa','Segen Zuria','Kochere','Hamer','Kolango','Bonke']
+    .forEach((w, i) => { projects[i].woreda = w; });
+
   // Hidar (current month) report statuses per project
   const HIDAR = ['pending:1','pending:2','approved','returned:1','approved','pending:0','pending:3','approved','pending:1','pending:2','approved','returned:0','approved','pending:0'];
   const PHOTOS = ['road-inspection','bridge-site-visit','road-consultation','project-inauguration'];

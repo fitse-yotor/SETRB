@@ -341,3 +341,35 @@ button{font:inherit;cursor:pointer;border:0;background:none}
   .director-body{padding:28px 22px}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
+
+/* ---------- Complaint form: tabs, photo, tracking ---------- */
+.form-tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--bg);border-radius:12px;padding:4px;gap:4px}
+.form-tabs button{padding:10px 8px;border-radius:9px;font-weight:600;font-size:.88rem;color:var(--muted)}
+.form-tabs button.active{background:#fff;color:var(--navy);box-shadow:0 2px 8px rgba(14,42,90,.08)}
+.form-pane{display:grid;gap:14px}
+.hidden{display:none!important}
+.file-drop{display:flex;align-items:center;gap:10px;border:1.5px dashed #c9d6ee;border-radius:12px;padding:12px 14px;cursor:pointer;color:var(--muted);font-size:.88rem;background:var(--bg);margin:0!important;font-weight:500!important}
+.file-drop:hover{border-color:var(--sky);color:var(--navy)}
+.file-drop input{display:none}
+.file-drop img{width:48px;height:48px;border-radius:8px;object-fit:cover}
+.form-err{display:none;padding:10px 12px;border-radius:10px;background:var(--coffee-soft);color:var(--coffee);font-size:.86rem;font-weight:600}
+.form-err.show{display:block}
+.form-msg b{font-family:ui-monospace,Menlo,monospace;font-size:1rem;letter-spacing:.02em;user-select:all}
+.track-card{border:1px solid var(--line);border-radius:14px;padding:16px}
+.track-card .th{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.track-card .th b{color:var(--navy)}
+.track-card .meta{font-size:.82rem;color:var(--muted);margin-bottom:12px}
+.t-status{display:inline-block;padding:4px 12px;border-radius:999px;font-size:.76rem;font-weight:700}
+.t-status.received{background:#eef1f5;color:var(--navy)}
+.t-status.assigned{background:var(--sky-soft);color:var(--blue)}
+.t-status.in-progress{background:#fdf5e1;color:#a07400}
+.t-status.resolved{background:var(--green-soft);color:var(--green)}
+.t-status.rejected{background:var(--coffee-soft);color:var(--coffee)}
+.t-steps{list-style:none;position:relative;padding-left:20px;display:grid;gap:12px}
+.t-steps::before{content:"";position:absolute;left:5px;top:6px;bottom:6px;width:2px;background:var(--line)}
+.t-steps li{position:relative;font-size:.86rem}
+.t-steps li::before{content:"";position:absolute;left:-20px;top:4px;width:12px;height:12px;border-radius:50%;background:#fff;border:3px solid var(--sky)}
+.t-steps li b{display:block;color:var(--navy);font-size:.84rem}
+.t-steps li small{color:var(--muted);font-size:.76rem}
+.t-none{padding:12px 14px;border-radius:10px;background:var(--bg);color:var(--muted);font-size:.88rem}
+.cta .t-steps li{display:block;color:var(--ink);font-size:.86rem}

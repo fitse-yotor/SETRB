@@ -1,5 +1,6 @@
 import "../css/style.css";
 import "./data.js";
+import { REGIONS, ZONE_AM, COMPLAINT_TYPES, COMPLAINT_STATUS, addComplaint, findComplaint, fmtDate, shrinkImage } from "./shared.js";
 (function () {
   const D = window.PORTAL_DATA;
   let lang = 'en';
@@ -38,16 +39,24 @@ import "./data.js";
     'news.eyebrow':'ወቅታዊ ዜናዎች','news.title':'ከቢሮው የተገኙ ዜናዎችና መረጃዎች',
     'tn.title':'ጨረታዎችና ግዢ','an.title':'ማስታወቂያዎች',
     'rp.eyebrow':'የዜጎች አስተያየት','rp.title':'የመንገድ ችግር አይተዋል? ለቢሮው ያሳውቁ።','rp.text':'ጉድጓዶች፣ የተጎዱ ድልድዮች፣ የተዘጉ የውሃ መውረጃዎች፣ ፍትሐዊ ያልሆነ ታሪፍ ወይም የአገልግሎት ቅሬታ — እያንዳንዱ ጥቆማ የመከታተያ ቁጥር ይሰጠዋል።',
-    'rp.l1':'የመከታተያ ቁጥር ወዲያውኑ ያግኙ','rp.l2':'ለሚመለከተው የዞን መምሪያ ይተላለፋል','rp.l3':'በSMS ወይም በቴሌግራም ይከታተሉ',
+    'rp.l1':'የመከታተያ ቁጥር ወዲያውኑ ያግኙ','rp.l2':'ለሚመለከተው የዞንና የወረዳ ጽ/ቤት ይተላለፋል','rp.l3':'በመከታተያ ቁጥርዎ ምላሹን በኦንላይን ይከታተሉ',
     'rp.name':'ሙሉ ስም','rp.phone':'ስልክ','rp.type':'የችግሩ አይነት','rp.zone':'ዞን / ወረዳ','rp.desc':'ዝርዝር መግለጫ','rp.submit':'ጥቆማ ይላኩ',
     'rp.types':['የመንገድ ብልሽት / ጉድጓድ','ድልድይ ወይም የውሃ መውረጃ','የሕዝብ ትራንስፖርት ቅሬታ','የአገልግሎት አሰጣጥ ቅሬታ','ሌላ'],
     'rp.ok':'ጥቆማዎ ደርሷል። የመከታተያ ቁጥርዎ፡ ',
+    'rp.tabSubmit':'ቅሬታ ያቅርቡ','rp.tabTrack':'ቅሬታዬን ልከታተል','rp.zoneL':'ዞን','rp.woredaL':'ወረዳ','rp.loc':'ትክክለኛ ቦታ (ቀበሌ፣ መንገድ፣ መለያ ምልክት)',
+    'rp.photo':'ፎቶ (አማራጭ)','rp.photoHint':'የችግሩን ፎቶ ለማያያዝ ይጫኑ','rp.trackL':'የመከታተያ ቁጥር','rp.trackBtn':'ሁኔታውን ይመልከቱ',
+    'rp.req':'እባክዎ ሁሉንም አስፈላጊ መረጃዎች ይሙሉ።','rp.badPhone':'እባክዎ ትክክለኛ የስልክ ቁጥር ያስገቡ።','rp.keep':'ይህን ቁጥር ይያዙ — ሂደቱን ለመከታተል ይጠቀሙበት።',
+    'rp.notFound':'በዚህ ቁጥር የተመዘገበ ቅሬታ አልተገኘም። ቁጥሩን አረጋግጠው እንደገና ይሞክሩ።','rp.selZone':'ዞን ይምረጡ','rp.submitted':'የቀረበበት ቀን','rp.assigned':'የተመደበለት',
+    'rp.woredaOffice':'ወረዳ ትራንስፖርት ጽ/ቤት','rp.updates':'ሂደቶች','rp.sending':'በመላክ ላይ…','rp.photoAdded':'ፎቶ ተያይዟል',
     'ct.eyebrow':'ያግኙን','ct.title':'ቢሮውን ያነጋግሩ','ct.addr':'አድራሻ','ct.phone':'ስልክ','ct.email':'ኢሜይል','ct.hours':'የሥራ ሰዓት',
     'ft.text':'ጥራት ባላቸው መንገዶችና አስተማማኝ ትራንስፖርት የተሳሰረች፣ ደህንነቷ የተጠበቀና የበለፀገች ደቡብ ኢትዮጵያን መገንባት።',
     'ft.quick':'ፈጣን ማስፈንጠሪያዎች','ft.services':'አገልግሎቶች','ft.partners':'አጋሮች',
     'ft.copy':'የደቡብ ኢትዮጵያ ክልል ትራንስፖርትና መንገድ ልማት አስተዳደር ቢሮ። መብቱ በሕግ የተጠበቀ ነው።','ft.made':'ወላይታ ሶዶ፣ ኢትዮጵያ'
   };
-  const EN_EXTRA = { 'p.phys':'Physical progress','p.fin':'Financial progress','p.end':'Completion','p.empty':'No projects match your search.','rp.ok':'Thank you — your report was received. Tracking number: ' };
+  const EN_EXTRA = { 'p.phys':'Physical progress','p.fin':'Financial progress','p.end':'Completion','p.empty':'No projects match your search.','rp.ok':'Thank you — your complaint was received. Tracking number: ',
+    'rp.req':'Please fill in all required fields.','rp.badPhone':'Please enter a valid phone number.','rp.keep':'Keep this number — use it in “Track my complaint” to follow the response.',
+    'rp.notFound':'No complaint found with this tracking number. Please check it and try again.','rp.selZone':'Select zone','rp.submitted':'Submitted','rp.assigned':'Assigned to',
+    'rp.woredaOffice':'Woreda Transport Office','rp.updates':'Updates','rp.sending':'Sending…','rp.photoAdded':'Photo attached' };
   const EN = {};
   const STATUS = { 'on-track':{en:'On track',am:'በዕቅድ መሠረት'}, 'at-risk':{en:'At risk',am:'ስጋት ያለበት'}, 'delayed':{en:'Delayed',am:'የዘገየ'}, 'done':{en:'Completed',am:'የተጠናቀቀ'} };
 
@@ -66,7 +75,7 @@ import "./data.js";
     document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = t(el.dataset.i18nPh));
     document.querySelectorAll('[data-i18n-opts]').forEach(el => t(el.dataset.i18nOpts).forEach((txt, i) => el.options[i] && (el.options[i].text = txt)));
     document.querySelectorAll('.lang-switch button').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
-    renderProjects(); renderNews(); renderNotices();
+    renderProjects(); renderNews(); renderNotices(); fillZones(); if (lastTrack) showTrack(lastTrack);
   }
   document.querySelectorAll('.lang-switch button').forEach(b => b.addEventListener('click', () => {
     lang = b.dataset.lang; try { localStorage.setItem('lang', lang); } catch (e) {}
@@ -161,14 +170,71 @@ import "./data.js";
     requestAnimationFrame(step);
   }
 
-  /* ---------------- Report form ---------------- */
-  document.getElementById('reportForm').addEventListener('submit', e => {
-    e.preventDefault();
-    const id = 'SE-' + new Date().getFullYear() + '-' + Math.floor(100000 + Math.random() * 900000);
-    const msg = document.getElementById('formMsg');
-    msg.textContent = t('rp.ok') + id; msg.classList.add('show');
-    e.target.reset();
+  /* ---------------- Complaints: submit & track ---------------- */
+  const $id = x => document.getElementById(x);
+  const escH = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  let photoData = null, lastTrack = null;
+
+  function fillZones() {
+    const z = $id('rpZone'), cur = z.value;
+    z.innerHTML = `<option value="">${escH(t('rp.selZone'))}</option>` + Object.keys(REGIONS).map(k =>
+      `<option value="${escH(k)}" ${k === cur ? 'selected' : ''}>${escH(lang === 'am' ? ZONE_AM[k] || k : k)}</option>`).join('');
+    fillWoredas();
+  }
+  function fillWoredas() {
+    const z = $id('rpZone').value, w = $id('rpWoreda'), cur = w.value;
+    w.innerHTML = (REGIONS[z] || []).map(k => `<option ${k === cur ? 'selected' : ''}>${escH(k)}</option>`).join('');
+    w.disabled = !z;
+  }
+  $id('rpZone').addEventListener('change', fillWoredas);
+
+  document.querySelectorAll('[data-ftab]').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('[data-ftab]').forEach(x => x.classList.toggle('active', x === b));
+    $id('reportForm').classList.toggle('hidden', b.dataset.ftab !== 'submit');
+    $id('trackForm').classList.toggle('hidden', b.dataset.ftab !== 'track');
+  }));
+
+  $id('rpPhoto').addEventListener('change', async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try {
+      photoData = await shrinkImage(f);
+      $id('rpPhotoTxt').innerHTML = `<img src="${photoData}" alt=""> ${escH(t('rp.photoAdded'))}`;
+    } catch (err) { photoData = null; }
   });
+
+  $id('reportForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const v = id => $id(id).value.trim();
+    const err = $id('rpErr');
+    if (!v('rpName') || !v('rpPhone') || !v('rpZone') || !v('rpWoreda') || !v('rpLoc') || !v('rpDesc')) {
+      err.textContent = t('rp.req'); err.classList.add('show'); return;
+    }
+    if (!/^\+?[0-9 ]{9,15}$/.test(v('rpPhone'))) { err.textContent = t('rp.badPhone'); err.classList.add('show'); return; }
+    err.classList.remove('show');
+    const c = addComplaint({
+      name: v('rpName'), phone: v('rpPhone'), type: COMPLAINT_TYPES[$id('rpType').selectedIndex] || COMPLAINT_TYPES[4],
+      zone: v('rpZone'), woreda: v('rpWoreda'), location: v('rpLoc'), description: v('rpDesc'), photo: photoData
+    });
+    const msg = $id('formMsg');
+    msg.innerHTML = `${escH(t('rp.ok'))}<b>${escH(c.id)}</b><br><small>${escH(t('rp.keep'))}</small>`;
+    msg.classList.add('show');
+    e.target.reset(); photoData = null; $id('rpPhotoTxt').textContent = t('rp.photoHint'); fillZones();
+    $id('trackId').value = c.id;
+  });
+
+  function showTrack(id) {
+    const c = findComplaint(id), box = $id('trackResult');
+    lastTrack = id;
+    if (!c) { box.innerHTML = `<div class="t-none">${escH(t('rp.notFound'))}</div>`; return; }
+    const st = s => `<span class="t-status ${s}">${escH(lang === 'am' ? COMPLAINT_STATUS[s].am : COMPLAINT_STATUS[s].label)}</span>`;
+    const steps = c.history.filter(h => h.public).slice().reverse();
+    box.innerHTML = `<div class="track-card">
+      <div class="th"><b>${escH(c.id)}</b>${st(c.status)}</div>
+      <div class="meta">${escH(c.type)} · ${escH(c.woreda)}, ${escH(lang === 'am' ? ZONE_AM[c.zone] || c.zone : c.zone)}<br>${escH(t('rp.submitted'))}: ${escH(fmtDate(c.createdAt))}${c.assignedTo ? ` · ${escH(t('rp.assigned'))}: ${escH(c.assignedTo)} ${escH(t('rp.woredaOffice'))}` : ''}</div>
+      <ul class="t-steps">${steps.map(h => `<li><b>${st(h.status)}</b> ${escH(h.note)}<br><small>${escH(fmtDate(h.at))}</small></li>`).join('')}</ul>
+    </div>`;
+  }
+  $id('trackForm').addEventListener('submit', e => { e.preventDefault(); if ($id('trackId').value.trim()) showTrack($id('trackId').value); });
 
   document.getElementById('year').textContent = new Date().getFullYear();
   applyLang();

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Staff Sign In</title>
+<link rel="icon" href="assets/img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Ethiopic:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+</head>
+<body class="login-page">
+  <div class="login-wrap">
+    <section class="login-side">
+      <img src="assets/img/news/road-inspection.jpg" alt="">
+      <div class="login-side-body">
+        <img class="login-logo" src="assets/img/logo.png" alt="Bureau emblem">
+        <h1>Project Monitoring & Reporting</h1>
+        <p>የደቡብ ኢትዮጵያ ክልል ትራንስፖርትና መንገድ ልማት አስተዳደር ቢሮ</p>
+        <ul>
+          <li>Zone and woreda offices submit and verify monthly progress reports</li>
+          <li>Bureau reviewers approve reports and follow every project</li>
+          <li>Citizen complaints routed to the responsible zone and woreda</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="login-main">
+      <a href="index.html" class="back-link">← Public portal</a>
+      <form class="login-card" id="loginForm" novalidate>
+        <h2>Staff sign in</h2>
+        <p class="muted">Use the account issued by the Bureau or your zone office.</p>
+        <div class="field"><label for="user">Username</label><input id="user" autocomplete="username" required placeholder="e.g. zone.wolaita"></div>
+        <div class="field"><label for="pass">Password</label><input id="pass" type="password" autocomplete="current-password" required></div>
+        <div class="err" id="loginErr"></div>
+        <button class="btn btn-primary btn-block" type="submit">Sign in</button>
+      </form>
+
+      <div class="demo-box">
+        <div class="demo-head"><strong>Demo accounts</strong><span>password: <code>demo123</code></span></div>
+        <div id="demoAccounts"></div>
+      </div>
+    </section>
+  </div>
+  <script type="module" src="/src/js/login.js"></script>
+</body>
+</html>

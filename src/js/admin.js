@@ -1,10 +1,13 @@
 import "../css/admin.css";
 import "./admin-data.js";
+import { currentUser, logout, getUsers, saveUsers, getComplaints, saveComplaints, REGIONS, ROLES, COMPLAINT_TYPES, COMPLAINT_STATUS, scopeLabel, resetShared, fmtDate } from "./shared.js";
 (function () {
   'use strict';
+  const ME = currentUser();
+  if (!ME) { location.replace('login.html'); return; }
   const D = window.ADMIN_DATA;
   const { MONTHS, CUR } = D;
-  const STEPS = ['Contractor', 'Consultant', 'Zone office', 'Bureau'];
+  const STEPS = ['Contractor / Woreda', 'Consultant', 'Zone office', 'Bureau'];
   const ROLE_STAGE = { consultant: 1, zone: 2, bureau: 3 };
   const STATUS_LABEL = { 'on-track': 'On track', 'at-risk': 'At risk', delayed: 'Delayed', done: 'Completed' };
   const STATUS_ICON = { 'on-track': 'i-check', 'at-risk': 'i-clock', delayed: 'i-alert', done: 'i-flag' };
@@ -32,7 +35,22 @@ import "./admin-data.js";
     try { localStorage.setItem(KEY, JSON.stringify({ reports: state.reports.map(r => ({ ...r, localPhotos: undefined })), issues: state.issues })); } catch (e) {}
   }
   state = load();
-  let role = 'bureau';
+  const role = ME.role;
+  const SUBMITTERS = ['contractor', 'woreda'];
+  const canSubmit = SUBMITTERS.includes(role);
+
+  /* ---------------- scope: what this account may see ---------------- */
+  const inScope = p => role === 'bureau' ||
+    (role === 'zone' && p.zone === ME.zone) ||
+    (role === 'woreda' && p.zone === ME.zone && p.woreda === ME.woreda) ||
+    (role === 'consultant' && p.consultant === ME.org) ||
+    (role === 'contractor' && p.contractor === ME.org);
+  const PROJECTS = D.projects.filter(inScope);
+  const visible = id => PROJECTS.some(p => p.id === id);
+  const myReports = () => state.reports.filter(r => visible(r.projectId));
+  const complaintInScope = c => role === 'bureau' || (role === 'zone' && c.zone === ME.zone) || (role === 'woreda' && c.zone === ME.zone && c.woreda === ME.woreda);
+  const canComplaints = ['bureau', 'zone', 'woreda'].includes(role);
+  const canAccounts = ['bureau', 'zone'].includes(role);
 
   /* ---------------- derived project metrics ---------------- */
   const projById = id => D.projects.find(p => p.id === id);
@@ -56,7 +74,7 @@ import "./admin-data.js";
     });
     return { physical, financial, planned, variance, status, last, current, lastMonth, series };
   }
-  const allMetrics = () => D.projects.map(p => ({ p, m: metrics(p) }));
+  const allMetrics = () => PROJECTS.map(p => ({ p, m: metrics(p) }));
 
   /* ---------------- toast ---------------- */
   let toastT;
@@ -66,7 +84,7 @@ import "./admin-data.js";
   }
 
   /* ---------------- filters (dashboard) ---------------- */
-  const uniq = k => [...new Set(D.projects.map(p => p[k]))].sort();
+  const uniq = k => [...new Set(PROJECTS.map(p => p[k]))].sort();
   function fillSelect(sel, label, vals) {
     sel.innerHTML = `<option value="all">All ${label}</option>` + vals.map(v => `<option>${esc(v)}</option>`).join('');
   }
@@ -295,10 +313,11 @@ import "./admin-data.js";
   let rTab = 'pending';
   function renderReports() {
     const q = ($('#rSearch').value || '').toLowerCase();
-    const counts = { pending: 0, returned: 0, approved: 0, all: state.reports.length };
-    state.reports.forEach(r => counts[r.status]++);
+    const mine = myReports();
+    const counts = { pending: 0, returned: 0, approved: 0, all: mine.length };
+    mine.forEach(r => counts[r.status]++);
     $$('#rTabs button').forEach(b => { b.classList.toggle('active', b.dataset.tab === rTab); b.querySelector('.c').textContent = counts[b.dataset.tab]; });
-    const rows = state.reports.filter(r => (rTab === 'all' || r.status === rTab) &&
+    const rows = mine.filter(r => (rTab === 'all' || r.status === rTab) &&
       (!q || [r.id, projById(r.projectId).name, r.submittedBy].join(' ').toLowerCase().includes(q)))
       .sort((a, b) => b.month - a.month || (a.status === 'pending' ? -1 : 1));
     $('#repTable tbody').innerHTML = rows.map(r => {
@@ -319,9 +338,11 @@ import "./admin-data.js";
   $('#rSearch').addEventListener('input', renderReports);
 
   function updateBadges() {
-    const n = state.reports.filter(r => r.status === 'pending').length;
+    const n = myReports().filter(r => r.status === 'pending' && (role === 'bureau' || ROLE_STAGE[role] === r.stage || role === 'woreda' || role === 'contractor')).length;
     $('#navPending').textContent = n; $('#navPending').style.display = n ? '' : 'none';
-    const iN = state.issues.filter(i => i.status === 'open').length;
+    const iN = state.issues.filter(i => i.status === 'open' && visible(i.projectId)).length;
+    const cN = canComplaints ? getComplaints().filter(c => complaintInScope(c) && ['received', 'assigned'].includes(c.status)).length : 0;
+    $('#navComplaints').textContent = cN; $('#navComplaints').style.display = cN ? '' : 'none';
     $('#navIssues').textContent = iN; $('#navIssues').style.display = iN ? '' : 'none';
   }
 
@@ -332,7 +353,7 @@ import "./admin-data.js";
   function renderIssues() {
     const sev = $('#iSev').value;
     const order = { high: 0, medium: 1, low: 2 };
-    const rows = state.issues.filter(i => (iFilter === 'all' || i.status === iFilter) && (sev === 'all' || i.sev === sev)).sort((a, b) => order[a.sev] - order[b.sev]);
+    const rows = state.issues.filter(i => visible(i.projectId) && (iFilter === 'all' || i.status === iFilter) && (sev === 'all' || i.sev === sev)).sort((a, b) => order[a.sev] - order[b.sev]);
     $('#issueTable tbody').innerHTML = rows.map(i => `
       <tr data-project="${i.projectId}">
         <td><span class="name">${esc(i.title)}</span><span class="sub">${esc(i.id)}</span></td>
@@ -422,7 +443,7 @@ import "./admin-data.js";
     const body = `
       <div class="dr-sec">${statusPill(m.status)}</div>
       <div class="dr-sec"><div class="info-grid">
-        <div><small>Zone</small><b>${esc(p.zone)}</b></div>
+        <div><small>Zone / Woreda</small><b>${esc(p.zone)} · ${esc(p.woreda)}</b></div>
         <div><small>Type</small><b>${esc(p.type)}</b></div>
         <div><small>Length</small><b>${p.km} km</b></div>
         <div><small>Contract value</small><b>${etb(p.value)}</b></div>
@@ -446,18 +467,18 @@ import "./admin-data.js";
       <div class="dr-sec"><h4>Issues</h4>${issues.length ? issues.map(i => `<div class="list-item"><span class="li-ic ${i.sev === 'high' ? 'k-red' : i.sev === 'medium' ? 'k-gold' : 'k-blue'}">${icon('i-flag')}</span><div><h4>${esc(i.title)}</h4><p>${esc(i.owner)} · due ${esc(i.due)}</p></div><div class="right"><span class="pill ${i.status === 'open' ? i.sev : 'resolved'}">${i.status}</span></div></div>`).join('') : '<p class="sub" style="color:var(--muted)">No issues logged.</p>'}</div>
       <div class="dr-sec"><h4>Latest site photos</h4><div class="photos">${photoHTML(reps[0], p)}</div></div>`;
     const foot = `${m.current && m.current.status !== 'approved' ? `<button class="btn btn-light" data-report="${m.current.id}">${icon('i-doc')}Open ${esc(MONTHS[CUR])} report</button>` : ''}
-      <button class="btn btn-primary" data-new="${p.id}">${icon('i-plus')}New report</button>`;
-    openDrawer(p.name, `${p.id} · ${p.zone} Zone`, body, foot);
+      ${canSubmit ? `<button class="btn btn-primary" data-new="${p.id}">${icon('i-plus')}New report</button>` : ''}`;
+    openDrawer(p.name, `${p.id} · ${p.woreda} Woreda · ${p.zone} Zone`, body, foot.trim());
   }
 
   /* ---------- report review drawer ---------- */
   function openReport(id) {
     const r = state.reports.find(x => x.id === id), p = projById(r.projectId);
     const canAct = r.status === 'pending' && ROLE_STAGE[role] === r.stage;
-    const canResubmit = r.status === 'returned' && role === 'contractor';
+    const canResubmit = r.status === 'returned' && canSubmit;
     const body = `
       <div class="dr-sec"><h4>Approval workflow</h4>${stepper(r)}
-        ${r.status === 'pending' && !canAct ? `<p style="font-size:.78rem;color:var(--muted);margin-top:8px">Waiting on <b>${esc(STEPS[r.stage])}</b>. Switch role in the top bar to act on this report.</p>` : ''}
+        ${r.status === 'pending' && !canAct ? `<p style="font-size:.78rem;color:var(--muted);margin-top:8px">Waiting on <b>${esc(STEPS[r.stage])}</b>. Only that office can act on this report now.</p>` : ''}
       </div>
       <div class="dr-sec"><div class="info-grid">
         <div><small>This month</small><b class="num">+${pct(r.physThis)}</b></div>
@@ -486,22 +507,21 @@ import "./admin-data.js";
     openDrawer(`${r.id} · ${MONTHS[r.month]} report`, p.name, body, foot);
   }
 
-  const ROLE_NAME = { bureau: 'Bureau reviewer', zone: 'Zone engineer', consultant: 'Consultant', contractor: 'Contractor' };
   function act(kind, id) {
     const r = state.reports.find(x => x.id === id);
     const c = ($('#revComment') || {}).value?.trim() || '';
     if (kind === 'return' && !c) { $('#revErr').classList.add('show'); $('#revComment').focus(); return; }
     const at = `${MONTHS[CUR]} 24`;
     if (kind === 'approve') {
-      r.comments.push({ by: ROLE_NAME[role], text: c || 'Verified and forwarded.', at, action: 'approved' });
+      r.comments.push({ by: ME.name, text: c || 'Verified and forwarded.', at, action: 'approved' });
       r.stage += 1;
       if (r.stage >= 4) { r.status = 'approved'; toast(`${r.id} approved. Project progress updated.`); }
       else toast(`${r.id} forwarded to ${STEPS[r.stage]}`);
     } else if (kind === 'return') {
-      r.comments.push({ by: ROLE_NAME[role], text: c, at, action: 'returned' });
-      r.status = 'returned'; r.stage = 0; toast(`${r.id} returned to contractor`);
+      r.comments.push({ by: ME.name, text: c, at, action: 'returned' });
+      r.status = 'returned'; r.stage = 0; toast(`${r.id} returned to the submitter`);
     } else if (kind === 'resubmit') {
-      r.comments.push({ by: 'Contractor', text: c || 'Corrected and resubmitted.', at, action: 'resubmitted' });
+      r.comments.push({ by: ME.name, text: c || 'Corrected and resubmitted.', at, action: 'resubmitted' });
       r.status = 'pending'; r.stage = 1; toast(`${r.id} resubmitted to consultant`);
     }
     save(); closeDrawer(); renderAll();
@@ -509,8 +529,10 @@ import "./admin-data.js";
 
   /* ---------- new report drawer ---------- */
   function openNewReport(projectId) {
-    const opts = D.projects.filter(p => metrics(p).status !== 'done');
-    const pid = projectId || opts[0].id;
+    if (!canSubmit) { toast('Only contractors and woreda offices submit monthly reports'); return; }
+    const opts = PROJECTS.filter(p => metrics(p).status !== 'done');
+    if (!opts.length) { toast('No active projects assigned to your account'); return; }
+    const pid = opts.some(p => p.id === projectId) ? projectId : opts[0].id;
     const body = `
       <div class="form-grid">
         <div class="field full"><label>Project</label><select id="nrProject">${opts.map(p => `<option value="${p.id}" ${p.id === pid ? 'selected' : ''}>${esc(p.name)} (${esc(p.zone)})</option>`).join('')}</select></div>
@@ -578,11 +600,11 @@ import "./admin-data.js";
         id: existing ? existing.id : 'MR-' + (2000 + state.reports.length + 1 + Math.floor(Math.random() * 900)),
         projectId: pidNow, month: CUR, physThis: r1(Math.max(0, cum - prevCum)), physCum: cum,
         finCum: Math.min(100, +$('#nrFin').value || 0), certified: +$('#nrAmt').value || 0,
-        status: 'pending', stage: 1, submitted: `${MONTHS[CUR]} 24`, submittedBy: p.contractor,
+        status: 'pending', stage: 1, submitted: `${MONTHS[CUR]} 24`, submittedBy: ME.name,
         weather: $('#nrWeather').value, labour: +$('#nrLabour').value || 0, equipment: +$('#nrEquip').value || 0,
         items, narrative: $('#nrNarr').value.trim() || 'No narrative provided.',
         photos: ['road-inspection', 'road-consultation'], localPhotos: photos.length ? photos : undefined,
-        comments: existing ? [...existing.comments, { by: 'Contractor', text: 'Report revised and resubmitted.', at: `${MONTHS[CUR]} 24`, action: 'resubmitted' }] : []
+        comments: existing ? [...existing.comments, { by: ME.name, text: 'Report revised and resubmitted.', at: `${MONTHS[CUR]} 24`, action: 'resubmitted' }] : []
       };
       if (existing) Object.assign(existing, rep); else state.reports.push(rep);
       save(); closeDrawer(); rTab = 'pending'; location.hash = '#reports'; renderAll();
@@ -591,10 +613,221 @@ import "./admin-data.js";
     fillItems();
   }
 
+  /* =================================================================
+     COMPLAINTS (citizen submissions from the public portal)
+     ================================================================= */
+  let cFilter = 'open';
+  const C_FILTERS = [['open', 'Open', c => ['received', 'assigned', 'in-progress'].includes(c.status)], ['received', 'New', c => c.status === 'received'],
+    ['in-progress', 'In progress', c => c.status === 'in-progress' || c.status === 'assigned'], ['resolved', 'Resolved', c => c.status === 'resolved'], ['all', 'All', () => true]];
+  const cPill = st => `<span class="pill ${st}">${esc(COMPLAINT_STATUS[st].label)}</span>`;
+  if (canComplaints) {
+    $('#cType').innerHTML = '<option value="all">All types</option>' + COMPLAINT_TYPES.map(t => `<option>${esc(t)}</option>`).join('');
+    const zones = role === 'bureau' ? Object.keys(REGIONS) : [];
+    const wor = role === 'zone' ? REGIONS[ME.zone] : [];
+    $('#cZone').innerHTML = role === 'bureau' ? '<option value="all">All zones</option>' + zones.map(z => `<option>${esc(z)}</option>`).join('')
+      : role === 'zone' ? '<option value="all">All woredas</option>' + wor.map(w => `<option>${esc(w)}</option>`).join('') : '';
+    $('#cZone').classList.toggle('hidden', role === 'woreda');
+    ['#cSearch', '#cType', '#cZone'].forEach(id => $(id).addEventListener('input', renderComplaints));
+    $('#cChips').addEventListener('click', e => { const b = e.target.closest('[data-cf]'); if (b) { cFilter = b.dataset.cf; renderComplaints(); } });
+  }
+  function myComplaints() { return getComplaints().filter(complaintInScope); }
+  function renderComplaints() {
+    const all = myComplaints();
+    $('#cChips').innerHTML = C_FILTERS.map(([k, l, f]) => `<button class="stat-chip ${cFilter === k ? 'active' : ''}" data-cf="${k}"><b class="num">${all.filter(f).length}</b><span>${l}</span></button>`).join('');
+    const q = $('#cSearch').value.toLowerCase(), t = $('#cType').value, z = $('#cZone').value;
+    const f = C_FILTERS.find(x => x[0] === cFilter)[2];
+    const rows = all.filter(c => f(c) && (t === 'all' || c.type === t) &&
+      (!z || z === 'all' || (role === 'bureau' ? c.zone === z : c.woreda === z)) &&
+      (!q || [c.id, c.name, c.location, c.description, c.woreda, c.zone].join(' ').toLowerCase().includes(q)))
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    $('#cTable tbody').innerHTML = rows.map(c => `
+      <tr data-complaint="${esc(c.id)}">
+        <td><span class="name num">${esc(c.id)}</span><span class="sub">${esc(c.name)}</span></td>
+        <td><span class="name" style="font-weight:500">${esc(c.type)}</span><span class="sub">${esc(c.description.length > 70 ? c.description.slice(0, 70) + '…' : c.description)}</span></td>
+        <td><span class="name" style="font-weight:500">${esc(c.woreda)}</span><span class="sub">${esc(c.zone)} Zone</span></td>
+        <td class="sub">${c.assignedTo ? esc(c.assignedTo) + ' Woreda' : '—'}</td>
+        <td>${cPill(c.status)}</td>
+        <td class="sub">${esc(fmtDate(c.createdAt))}</td>
+      </tr>`).join('') || `<tr><td colspan="6" class="empty">No complaints in this list.</td></tr>`;
+    updateBadges();
+  }
+
+  function openComplaint(id) {
+    const c = getComplaints().find(x => x.id === id);
+    if (!c || !complaintInScope(c)) return;
+    const canAssign = role === 'bureau' || role === 'zone';
+    const statuses = Object.keys(COMPLAINT_STATUS);
+    const body = `
+      <div class="dr-sec">${cPill(c.status)}</div>
+      <div class="dr-sec"><div class="info-grid">
+        <div><small>Type</small><b>${esc(c.type)}</b></div>
+        <div><small>Zone</small><b>${esc(c.zone)}</b></div>
+        <div><small>Woreda</small><b>${esc(c.woreda)}</b></div>
+        <div><small>Citizen</small><b>${esc(c.name)}</b></div>
+        <div><small>Phone</small><b class="num">${esc(c.phone)}</b></div>
+        <div><small>Submitted</small><b>${esc(fmtDate(c.createdAt))}</b></div>
+      </div></div>
+      <div class="dr-sec"><h4>Location</h4><p style="font-size:.9rem">${esc(c.location || '—')}</p></div>
+      <div class="dr-sec"><h4>Description</h4><p style="font-size:.9rem">${esc(c.description)}</p></div>
+      ${c.photo ? `<div class="dr-sec"><h4>Photo from citizen</h4><div class="complaint-photo"><img src="${esc(c.photo)}" alt="Photo attached to complaint"></div></div>` : ''}
+      <div class="dr-sec"><h4>History</h4><div class="timeline">
+        ${c.history.map(h => `<div class="tl ${h.status === 'resolved' ? 'ok' : h.status === 'rejected' ? 'bad' : ''}"><b>${esc(h.by)}</b> ${cPill(h.status)}${h.public ? '' : ' <span class="pill inactive">internal</span>'}<p>${esc(h.note)} · ${esc(fmtDate(h.at))}</p></div>`).join('')}
+      </div></div>
+      <div class="dr-sec"><h4>Update complaint</h4>
+        <div class="form-grid">
+          <div class="field"><label>Status</label><select id="cuStatus">${statuses.map(st => `<option value="${st}" ${st === c.status ? 'selected' : ''}>${esc(COMPLAINT_STATUS[st].label)}</option>`).join('')}</select></div>
+          ${canAssign ? `<div class="field"><label>Assign to woreda office</label><select id="cuAssign"><option value="">Not assigned</option>${REGIONS[c.zone].map(w => `<option ${w === c.assignedTo ? 'selected' : ''}>${esc(w)}</option>`).join('')}</select></div>` : '<div></div>'}
+          <div class="field full"><label>Response / note</label><textarea id="cuNote" placeholder="What was done, or what happens next…"></textarea></div>
+          <label class="field full" style="display:flex;gap:8px;align-items:center;font-size:.84rem"><input type="checkbox" id="cuPublic" checked style="width:auto"> Show this note to the citizen on the tracking page</label>
+        </div>
+        <div class="err" id="cuErr"></div>
+      </div>`;
+    openDrawer(`Complaint ${c.id}`, `${c.type} · ${c.woreda}, ${c.zone}`, body,
+      `<button class="btn btn-light" id="cuCancel">Close</button><button class="btn btn-primary" id="cuSave">${icon('i-check')}Save update</button>`);
+    $('#cuCancel').addEventListener('click', closeDrawer);
+    $('#cuSave').addEventListener('click', () => {
+      const list = getComplaints(), cc = list.find(x => x.id === id);
+      let st = $('#cuStatus').value;
+      const note = $('#cuNote').value.trim(), assign = canAssign ? $('#cuAssign').value : cc.assignedTo;
+      const assignChanged = canAssign && assign !== (cc.assignedTo || '');
+      if (!note && !assignChanged && st === cc.status) { $('#cuErr').textContent = 'Nothing to save. Change the status, assign a woreda or add a note.'; $('#cuErr').classList.add('show'); return; }
+      if ((st === 'resolved' || st === 'rejected') && !note) { $('#cuErr').textContent = 'Please explain the resolution to the citizen.'; $('#cuErr').classList.add('show'); $('#cuNote').focus(); return; }
+      if (assignChanged && assign && st === 'received') st = 'assigned';
+      cc.assignedTo = assign || null; cc.status = st;
+      cc.history.push({ at: new Date().toISOString(), by: ME.name, status: st,
+        note: note || (assignChanged && assign ? `Assigned to ${assign} Woreda Transport Office.` : `Status changed to ${COMPLAINT_STATUS[st].label}.`),
+        public: $('#cuPublic').checked });
+      saveComplaints(list); closeDrawer(); renderComplaints(); toast(`Complaint ${id} updated`);
+    });
+  }
+
+  /* =================================================================
+     ACCOUNTS
+     ================================================================= */
+  const ROLE_CHOICES = role === 'bureau' ? Object.keys(ROLES) : ['woreda'];
+  if (canAccounts) {
+    $('#aRole').innerHTML = '<option value="all">All roles</option>' + ROLE_CHOICES.map(r => `<option value="${r}">${esc(ROLES[r].label)}</option>`).join('');
+    $('#aZone').innerHTML = role === 'bureau' ? '<option value="all">All zones</option>' + Object.keys(REGIONS).map(z => `<option>${esc(z)}</option>`).join('') : '';
+    $('#aZone').classList.toggle('hidden', role !== 'bureau');
+    ['#aSearch', '#aRole', '#aZone'].forEach(id => $(id).addEventListener('input', renderAccounts));
+    $('#newAccountBtn').addEventListener('click', openNewAccount);
+  }
+  const accountInScope = u => role === 'bureau' || (role === 'zone' && u.role === 'woreda' && u.zone === ME.zone);
+  function renderAccounts() {
+    const q = $('#aSearch').value.toLowerCase(), r = $('#aRole').value, z = $('#aZone').value;
+    const order = Object.keys(ROLES);
+    const rows = getUsers().filter(u => accountInScope(u) && (r === 'all' || u.role === r) && (!z || z === 'all' || u.zone === z) &&
+      (!q || [u.name, u.username, u.zone, u.woreda].join(' ').toLowerCase().includes(q)))
+      .sort((a, b) => order.indexOf(a.role) - order.indexOf(b.role) || (a.zone || '').localeCompare(b.zone || '') || a.name.localeCompare(b.name));
+    $('#aTable tbody').innerHTML = rows.map(u => `
+      <tr style="cursor:default">
+        <td><span class="name">${esc(u.name)}</span>${u.id === ME.id ? '<span class="sub">You</span>' : ''}</td>
+        <td class="num">${esc(u.username)}</td>
+        <td><span class="pill role">${esc(ROLES[u.role].short)}</span></td>
+        <td>${u.zone ? esc(u.zone) + (u.woreda ? ' · ' + esc(u.woreda) : '') : '<span class="sub">—</span>'}</td>
+        <td class="sub num">${esc(u.phone || '—')}</td>
+        <td><label class="switch" title="${u.active ? 'Active' : 'Inactive'}"><input type="checkbox" data-toggle="${u.id}" ${u.active ? 'checked' : ''} ${u.id === ME.id ? 'disabled' : ''}><span></span></label></td>
+        <td><button class="btn btn-light btn-sm" data-resetpw="${u.id}">${icon('i-key')}Reset password</button></td>
+      </tr>`).join('') || `<tr><td colspan="7" class="empty">No accounts.</td></tr>`;
+  }
+  $('#aTable').addEventListener('change', e => {
+    const t = e.target.closest('[data-toggle]'); if (!t) return;
+    const users = getUsers(), u = users.find(x => x.id === t.dataset.toggle);
+    if (!u || !accountInScope(u) || u.id === ME.id) return;
+    u.active = t.checked; saveUsers(users); toast(`${u.username} ${u.active ? 'activated' : 'deactivated'}`);
+  });
+  $('#aTable').addEventListener('click', e => {
+    const b = e.target.closest('[data-resetpw]'); if (!b) return;
+    const users = getUsers(), u = users.find(x => x.id === b.dataset.resetpw);
+    if (!u || !accountInScope(u)) return;
+    u.password = 'demo123'; saveUsers(users); toast(`Password for ${u.username} reset to the default`);
+  });
+
+  function openNewAccount() {
+    const zones = role === 'bureau' ? Object.keys(REGIONS) : [ME.zone];
+    const body = `
+      <div class="form-grid">
+        <div class="field"><label>Account type</label><select id="naRole">${ROLE_CHOICES.map(r => `<option value="${r}">${esc(ROLES[r].label)}</option>`).join('')}</select></div>
+        <div class="field" id="naZoneF"><label>Zone</label><select id="naZone">${zones.map(z => `<option>${esc(z)}</option>`).join('')}</select></div>
+        <div class="field" id="naWoredaF"><label>Woreda</label><select id="naWoreda"></select></div>
+        <div class="field full"><label>Office / full name</label><input id="naName" placeholder="e.g. Humbo Woreda Transport Office"></div>
+        <div class="field"><label>Username</label><input id="naUser" placeholder="e.g. woreda.humbo" autocomplete="off"></div>
+        <div class="field"><label>Phone</label><input id="naPhone" type="tel" placeholder="09xx xxx xxx"></div>
+        <div class="field"><label>Temporary password</label><input id="naPass" value="demo123"></div>
+      </div>
+      <p class="note" style="margin-top:14px">The office signs in with this username and sees only the projects, reports and complaints for its ${role === 'zone' ? 'woreda' : 'zone or woreda'}.</p>
+      <div class="err" id="naErr"></div>`;
+    openDrawer('New account', role === 'zone' ? `Woreda office in ${ME.zone} Zone` : 'Create a staff or partner account', body,
+      `<button class="btn btn-light" id="naCancel">Cancel</button><button class="btn btn-primary" id="naSave">${icon('i-plus')}Create account</button>`);
+    const sync = () => {
+      const r = $('#naRole').value, z = $('#naZone').value;
+      $('#naZoneF').classList.toggle('hidden', !['zone', 'woreda'].includes(r));
+      $('#naWoredaF').classList.toggle('hidden', r !== 'woreda');
+      const prev = $('#naWoreda').value;
+      $('#naWoreda').innerHTML = REGIONS[z].map(w => `<option ${w === prev ? 'selected' : ''}>${esc(w)}</option>`).join('');
+      const w = $('#naWoreda').value, sl = x => x.toLowerCase().replace(/[^a-z0-9]+/g, '');
+      const sugName = r === 'zone' ? `${z} Zone Transport & Road Department` : r === 'woreda' ? `${w} Woreda Transport Office` : '';
+      const sugUser = r === 'zone' ? 'zone.' + sl(z) : r === 'woreda' ? 'woreda.' + sl(w) : '';
+      if (!$('#naName').dataset.touched) $('#naName').value = sugName;
+      if (!$('#naUser').dataset.touched) $('#naUser').value = sugUser;
+    };
+    ['#naName', '#naUser'].forEach(id => $(id).addEventListener('input', e => { e.target.dataset.touched = '1'; }));
+    ['#naRole', '#naZone', '#naWoreda'].forEach(id => $(id).addEventListener('change', sync));
+    sync();
+    $('#naCancel').addEventListener('click', closeDrawer);
+    $('#naSave').addEventListener('click', () => {
+      const users = getUsers(), r = $('#naRole').value;
+      const u = { id: 'u' + Date.now().toString(36), role: r, name: $('#naName').value.trim(), username: $('#naUser').value.trim().toLowerCase(),
+        phone: $('#naPhone').value.trim(), password: $('#naPass').value, active: true, createdAt: new Date().toISOString().slice(0, 10) };
+      if (['zone', 'woreda'].includes(r)) u.zone = $('#naZone').value;
+      if (r === 'woreda') u.woreda = $('#naWoreda').value;
+      if (['consultant', 'contractor'].includes(r)) u.org = u.name;
+      const err = !u.name ? 'Enter the office or person name.' : !/^[a-z0-9._-]{3,}$/.test(u.username) ? 'Username: at least 3 characters, letters, numbers, dots or dashes.'
+        : users.some(x => x.username === u.username) ? 'That username is already taken.' : u.password.length < 6 ? 'Password must be at least 6 characters.'
+        : (r === 'woreda' && role === 'zone' && u.zone !== ME.zone) ? 'You can only create accounts in your zone.' : '';
+      if (err) { $('#naErr').textContent = err; $('#naErr').classList.add('show'); return; }
+      users.push(u); saveUsers(users); closeDrawer(); renderAccounts(); toast(`Account ${u.username} created`);
+    });
+  }
+
+  /* ---------------- user menu ---------------- */
+  const initials = n => n.split(/\s+/).filter(w => /^[A-Za-z]/.test(w)).slice(0, 2).map(w => w[0]).join('').toUpperCase() || 'U';
+  $('#avatar').textContent = initials(ME.name);
+  $('#userName').textContent = ME.name.length > 26 ? ME.name.slice(0, 24) + '…' : ME.name;
+  $('#userRole').textContent = ROLES[role].label;
+  $('#ddName').textContent = ME.name; $('#ddScope').textContent = `${ROLES[role].label} · ${scopeLabel(ME)}`;
+  $('#scopeChip span').textContent = scopeLabel(ME);
+  $('#userBtn').addEventListener('click', e => { e.stopPropagation(); $('#userDropdown').classList.toggle('show'); });
+  document.addEventListener('click', e => { if (!e.target.closest('.user-menu')) $('#userDropdown').classList.remove('show'); });
+  $('#logoutBtn').addEventListener('click', () => { logout(); location.replace('login.html'); });
+  $('#ddPassword').addEventListener('click', () => {
+    $('#userDropdown').classList.remove('show');
+    openDrawer('Change password', ME.username, `<div class="form-grid">
+      <div class="field full"><label>Current password</label><input id="pwOld" type="password" autocomplete="current-password"></div>
+      <div class="field"><label>New password</label><input id="pwNew" type="password" autocomplete="new-password"></div>
+      <div class="field"><label>Confirm new password</label><input id="pwNew2" type="password" autocomplete="new-password"></div></div><div class="err" id="pwErr"></div>`,
+      `<button class="btn btn-light" id="pwCancel">Cancel</button><button class="btn btn-primary" id="pwSave">${icon('i-check')}Update password</button>`);
+    $('#pwCancel').addEventListener('click', closeDrawer);
+    $('#pwSave').addEventListener('click', () => {
+      const users = getUsers(), u = users.find(x => x.id === ME.id);
+      const err = $('#pwOld').value !== u.password ? 'Current password is incorrect.' : $('#pwNew').value.length < 6 ? 'New password must be at least 6 characters.' : $('#pwNew').value !== $('#pwNew2').value ? 'Passwords do not match.' : '';
+      if (err) { $('#pwErr').textContent = err; $('#pwErr').classList.add('show'); return; }
+      u.password = $('#pwNew').value; saveUsers(users); closeDrawer(); toast('Password updated');
+    });
+  });
+
+  /* ---------------- role-based navigation ---------------- */
+  [['#sbAdminLabel', canAccounts], ['#sbAdminNav', canAccounts], ['#sbCitizenLabel', canComplaints], ['#navComplaints', canComplaints], ['#sbActionsLabel', canSubmit], ['#sbActionsNav', canSubmit]]
+    .forEach(([sel, show]) => { if (!show) $(sel).classList.add('hidden'); });
+  if (!canComplaints) $('a[data-view="complaints"]').classList.add('hidden');
+  $$('a[href="#new"]').forEach(a => a.classList.toggle('hidden', !canSubmit));
+  if (role === 'zone' || role === 'woreda') { $('#fZone').disabled = true; $('#pZone').disabled = true; }
+
   /* ---------------- global click delegation ---------------- */
   document.addEventListener('click', e => {
     const a = e.target.closest('[data-act]'); if (a) { act(a.dataset.act, a.dataset.id); return; }
     const n = e.target.closest('[data-new]'); if (n) { openNewReport(n.dataset.new); return; }
+    const cm = e.target.closest('[data-complaint]'); if (cm) { openComplaint(cm.dataset.complaint); return; }
     const r = e.target.closest('[data-report]'); if (r) { openReport(r.dataset.report); return; }
     const p = e.target.closest('[data-project]'); if (p && !e.target.closest('button')) { openProject(p.dataset.project); return; }
   });
@@ -618,13 +851,16 @@ import "./admin-data.js";
     projects: ['Projects', 'All regional road and bridge projects'],
     reports: ['Progress Reports', 'Monthly reports: review, verify and approve'],
     issues: ['Issues & Risks', 'Problems blocking project delivery'],
-    contractors: ['Contractors', 'Performance across active projects']
+    contractors: ['Contractors', 'Performance across active projects'],
+    complaints: ['Complaints', 'Citizen complaints from the public portal'],
+    accounts: ['Accounts', role === 'zone' ? `Woreda office accounts in ${ME.zone} Zone` : 'Bureau, zone, woreda, consultant and contractor accounts']
   };
   let currentView = 'dashboard';
   function route() {
     const h = location.hash.slice(1) || 'dashboard';
     if (h === 'new') { if (!$('#drawer').classList.contains('show')) openNewReport(); return; }
-    const v = TITLES[h] ? h : 'dashboard';
+    let v = TITLES[h] ? h : 'dashboard';
+    if ((v === 'complaints' && !canComplaints) || (v === 'accounts' && !canAccounts)) v = 'dashboard';
     currentView = v;
     $$('.view').forEach(s => s.classList.toggle('active', s.id === 'view-' + v));
     $$('.sb-nav a[data-view]').forEach(a => a.classList.toggle('active', a.dataset.view === v));
@@ -633,23 +869,17 @@ import "./admin-data.js";
     renderView(v); scrollTo(0, 0);
   }
   function renderView(v) {
-    ({ dashboard: renderDashboard, projects: renderProjects, reports: renderReports, issues: renderIssues, contractors: renderContractors })[v]();
+    ({ dashboard: renderDashboard, projects: renderProjects, reports: renderReports, issues: renderIssues, contractors: renderContractors, complaints: renderComplaints, accounts: renderAccounts })[v]();
   }
   function renderAll() { renderView(currentView); updateBadges(); }
   addEventListener('hashchange', route);
 
   /* ---------------- misc chrome ---------------- */
   $('#menuBtn').addEventListener('click', () => { document.body.classList.add('nav-open'); $('#overlay').classList.add('show'); });
-  $('#roleSel').addEventListener('change', e => {
-    role = e.target.value;
-    $('.user strong').textContent = ROLE_NAME[role];
-    $('.avatar').textContent = { bureau: 'BR', zone: 'ZE', consultant: 'CO', contractor: 'CT' }[role];
-    toast(`Now acting as ${ROLE_NAME[role]}`);
-    if ($('#drawer').classList.contains('show') && $('#drTitle').textContent.startsWith('MR-')) openReport($('#drTitle').textContent.split(' ')[0]);
-  });
+
   $('#globalSearch').addEventListener('input', e => { $('#pSearch').value = e.target.value; if (currentView !== 'projects') location.hash = '#projects'; else renderProjects(); });
   $('#bellBtn').addEventListener('click', () => { location.hash = '#dashboard'; setTimeout(() => $('#alertList').scrollIntoView({ behavior: 'smooth', block: 'center' }), 50); });
-  $('#resetDemo').addEventListener('click', e => { e.preventDefault(); state = freshState(); save(); renderAll(); toast('Demo data reset'); });
+  $('#resetDemo').addEventListener('click', e => { e.preventDefault(); state = freshState(); save(); resetShared(); location.reload(); });
   let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => currentView === 'dashboard' && renderDashboard(), 150); });
 
   updateBadges();

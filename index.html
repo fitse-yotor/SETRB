@@ -237,25 +237,42 @@
         <p data-i18n="rp.text">Potholes, damaged bridges, blocked drainage, unfair transport fares or service complaints — every report receives a tracking number.</p>
         <ul>
           <li><svg><use href="#i-check"/></svg><span data-i18n="rp.l1">Get a tracking number instantly</span></li>
-          <li><svg><use href="#i-check"/></svg><span data-i18n="rp.l2">Routed to the responsible zone office</span></li>
-          <li><svg><use href="#i-check"/></svg><span data-i18n="rp.l3">Follow up by SMS or Telegram</span></li>
+          <li><svg><use href="#i-check"/></svg><span data-i18n="rp.l2">Routed to the responsible zone and woreda office</span></li>
+          <li><svg><use href="#i-check"/></svg><span data-i18n="rp.l3">Follow the response online with your tracking number</span></li>
         </ul>
       </div>
-      <form class="form" id="reportForm">
-        <div class="row">
-          <div><label data-i18n="rp.name">Full name</label><input required></div>
-          <div><label data-i18n="rp.phone">Phone</label><input type="tel" required placeholder="09xx xxx xxx"></div>
+      <div class="form">
+        <div class="form-tabs" role="tablist">
+          <button type="button" class="active" data-ftab="submit" data-i18n="rp.tabSubmit">Submit a complaint</button>
+          <button type="button" data-ftab="track" data-i18n="rp.tabTrack">Track my complaint</button>
         </div>
-        <div class="row">
-          <div><label data-i18n="rp.type">Issue type</label>
-            <select data-i18n-opts="rp.types"><option>Road damage / pothole</option><option>Bridge or drainage</option><option>Public transport complaint</option><option>Service delivery complaint</option><option>Other</option></select>
+        <form id="reportForm" class="form-pane" novalidate>
+          <div class="row">
+            <div><label for="rpName" data-i18n="rp.name">Full name</label><input id="rpName" required autocomplete="name"></div>
+            <div><label for="rpPhone" data-i18n="rp.phone">Phone</label><input id="rpPhone" type="tel" required placeholder="09xx xxx xxx" autocomplete="tel"></div>
           </div>
-          <div><label data-i18n="rp.zone">Zone / Woreda</label><input required></div>
-        </div>
-        <div><label data-i18n="rp.desc">Description</label><textarea required></textarea></div>
-        <button class="btn btn-primary" type="submit"><span data-i18n="rp.submit">Submit Report</span><svg><use href="#i-arrow"/></svg></button>
-        <div class="form-msg" id="formMsg"></div>
-      </form>
+          <div><label for="rpType" data-i18n="rp.type">Issue type</label>
+            <select id="rpType" data-i18n-opts="rp.types"><option>Road damage / pothole</option><option>Bridge or drainage</option><option>Public transport complaint</option><option>Service delivery complaint</option><option>Other</option></select>
+          </div>
+          <div class="row">
+            <div><label for="rpZone" data-i18n="rp.zoneL">Zone</label><select id="rpZone" required></select></div>
+            <div><label for="rpWoreda" data-i18n="rp.woredaL">Woreda</label><select id="rpWoreda" required></select></div>
+          </div>
+          <div><label for="rpLoc" data-i18n="rp.loc">Exact location (kebele, road, landmark)</label><input id="rpLoc" required></div>
+          <div><label for="rpDesc" data-i18n="rp.desc">Description</label><textarea id="rpDesc" required></textarea></div>
+          <div><label data-i18n="rp.photo">Photo (optional)</label>
+            <label class="file-drop"><input type="file" id="rpPhoto" accept="image/*"><span id="rpPhotoTxt" data-i18n="rp.photoHint">Tap to add a photo of the problem</span></label>
+          </div>
+          <div class="form-err" id="rpErr"></div>
+          <button class="btn btn-primary" type="submit"><span data-i18n="rp.submit">Submit Report</span><svg><use href="#i-arrow"/></svg></button>
+          <div class="form-msg" id="formMsg"></div>
+        </form>
+        <form id="trackForm" class="form-pane hidden" novalidate>
+          <div><label for="trackId" data-i18n="rp.trackL">Tracking number</label><input id="trackId" placeholder="SE-2026-123456" autocomplete="off"></div>
+          <button class="btn btn-primary" type="submit"><span data-i18n="rp.trackBtn">Check status</span><svg><use href="#i-search"/></svg></button>
+          <div id="trackResult"></div>
+        </form>
+      </div>
     </div>
   </div>
 </section>
@@ -296,7 +313,7 @@
     </div>
     <div class="footer-bottom">
       <span>© <span id="year"></span> <span data-i18n="ft.copy">South Ethiopia Regional State Transport & Road Development Bureau. All rights reserved.</span></span>
-      <span><span data-i18n="ft.made">Wolaita Sodo, Ethiopia</span> · <a href="admin.html" style="color:#fff">Staff login</a></span>
+      <span><span data-i18n="ft.made">Wolaita Sodo, Ethiopia</span> · <a href="login.html" style="color:#fff">Staff login</a></span>
     </div>
   </div>
   <div class="flag-stripe"></div>
