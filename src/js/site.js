@@ -9,7 +9,7 @@ export const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;'
 
 const NAV = [
   ['index.html', 'nav.home', 'Home'], ['index.html#about', 'nav.about', 'About'], ['index.html#projects', 'nav.projects', 'Projects'],
-  ['news.html', 'nav.news', 'News'], ['tenders.html', 'nav.notices', 'Tenders'], ['vacancies.html', 'nav.vacancies', 'Vacancies'],
+  ['news.html', 'nav.news', 'News'], ['gallery.html', 'nav.gallery', 'Gallery'], ['tenders.html', 'nav.notices', 'Tenders'], ['vacancies.html', 'nav.vacancies', 'Vacancies'],
   ['contact.html', 'nav.contact', 'Contact']
 ];
 
@@ -17,7 +17,7 @@ const CHROME_AM = {
   'top.loc': 'ወላይታ ሶዶ፣ ደቡብ ኢትዮጵያ', 'top.hours': 'ሰኞ – አርብ · 2:30 – 11:30',
   'brand.name': 'ትራንስፖርትና መንገድ ልማት ቢሮ', 'brand.sub': 'የደቡብ ኢትዮጵያ ክልላዊ መንግሥት',
   'nav.home': 'መነሻ', 'nav.about': 'ስለ ቢሮው', 'nav.projects': 'ፕሮጀክቶች', 'nav.news': 'ዜናዎች', 'nav.notices': 'ጨረታዎች',
-  'nav.vacancies': 'የሥራ ማስታወቂያ', 'nav.contact': 'ያግኙን', 'nav.report': 'ጥቆማ ያቅርቡ',
+  'nav.vacancies': 'የሥራ ማስታወቂያ', 'nav.gallery': 'የፎቶ ማዕከል', 'nav.contact': 'ያግኙን', 'nav.report': 'ጥቆማ ያቅርቡ',
   'ft.text': 'ጥራት ባላቸው መንገዶችና አስተማማኝ ትራንስፖርት የተሳሰረች፣ ደህንነቷ የተጠበቀና የበለፀገች ደቡብ ኢትዮጵያን መገንባት።',
   'ft.quick': 'ፈጣን ማስፈንጠሪያዎች', 'ft.services': 'አገልግሎቶች', 'ft.partners': 'አጋሮች', 'ft.staff': 'የሠራተኞች መግቢያ',
   'ft.copy': 'የደቡብ ኢትዮጵያ ክልል ትራንስፖርትና መንገድ ልማት አስተዳደር ቢሮ። መብቱ በሕግ የተጠበቀ ነው።', 'ft.made': 'ወላይታ ሶዶ፣ ኢትዮጵያ',
@@ -59,7 +59,7 @@ function footerHTML() {
       </div>
     </div>
     <div><h5 data-i18n="ft.quick">Quick Links</h5><ul>
-      <li><a href="news.html" data-i18n="nav.news">News</a></li><li><a href="tenders.html" data-i18n="nav.notices">Tenders</a></li>
+      <li><a href="news.html" data-i18n="nav.news">News</a></li><li><a href="gallery.html" data-i18n="nav.gallery">Gallery</a></li><li><a href="tenders.html" data-i18n="nav.notices">Tenders</a></li>
       <li><a href="vacancies.html" data-i18n="nav.vacancies">Vacancies</a></li><li><a href="contact.html" data-i18n="nav.contact">Contact</a></li></ul></div>
     <div><h5 data-i18n="ft.services">Services</h5><ul>
       <li><a href="index.html#projects" data-i18n="nav.projects">Projects</a></li><li><a href="index.html#report" data-i18n="nav.report">Report an Issue</a></li>

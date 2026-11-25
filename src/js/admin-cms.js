@@ -231,11 +231,106 @@ export function createCMS({ $, esc, icon, openDrawer, closeDrawer, toast }) {
     $('#msgUnread').addEventListener('click', () => { const a = getMessages(); a.find(x => x.id === id).read = false; saveMessages(a); closeDrawer(); refresh(); });
   }
 
+  /* =============================== GALLERY =============================== */
+  function renderGallery(root) {
+    if (!root.querySelector('#cgBody')) {
+      root.innerHTML = toolbar('cgQ', 'Search albums…', 'album') + `<div class="album-admin" id="cgBody"></div>
+        <p class="demo-note" style="text-align:left">Demo: uploaded photos are kept in this browser, which holds only a few MB. In production, photos are stored on the server.</p>`;
+      root.querySelector('#cgQ').addEventListener('input', () => renderGallery(root));
+    }
+    const q = root.querySelector('#cgQ').value.toLowerCase();
+    const rows = getContent('gallery').filter(a => !q || [a.title.en, a.title.am].join(' ').toLowerCase().includes(q)).sort((a, b) => b.date.localeCompare(a.date));
+    root.querySelector('#cgBody').innerHTML = rows.map(a => `
+      <div class="album-card" data-edit-album="${esc(a.id)}">
+        <div class="ac-cover"><img src="${esc(a.cover || a.photos[0]?.src || '')}" alt=""><span>${a.photos.length} photos</span></div>
+        <div class="ac-body"><b>${esc(a.title.en)}</b><small>${esc(fmtDay(a.date))}</small>
+          <span class="pill ${a.published !== false ? 'approved' : 'inactive'}">${a.published !== false ? 'Published' : 'Draft'}</span></div>
+      </div>`).join('') || '<div class="empty">No albums yet.</div>';
+  }
+  function editAlbum(id) {
+    const a = getContent('gallery').find(x => x.id === id) || { id: '', date: new Date().toISOString().slice(0, 10), published: true, cover: '', title: {}, description: {}, photos: [] };
+    let photos = a.photos.map(p => ({ src: p.src, caption: { en: p.caption?.en || '', am: p.caption?.am || '' } }));
+    let cover = a.cover || photos[0]?.src || '';
+    const body = `
+      <div class="form-grid">
+        ${field('gTitleEn', 'Album title (English)', a.title.en, { required: true })}
+        ${field('gTitleAm', 'Album title (Amharic)', a.title.am)}
+        ${field('gDate', 'Date', a.date, { type: 'date', required: true })}
+        <label class="field" style="display:flex;gap:8px;align-items:center;font-size:.86rem;align-self:end"><input type="checkbox" id="gPub" ${a.published !== false ? 'checked' : ''} style="width:auto"> Published</label>
+        ${field('gDescEn', 'Description (English)', a.description.en, { full: true, area: true, rows: 2 })}
+        ${field('gDescAm', 'Description (Amharic)', a.description.am, { full: true, area: true, rows: 2 })}
+        <div class="field full"><label>Add photos</label>
+          <div class="img-pick" id="gLib">${LIBRARY.map(src => `<button type="button" data-add="${esc(src)}" title="Add from library"><img src="${esc(src)}" alt=""></button>`).join('')}
+            <label class="img-up">${icon('i-upload')}<span>Upload</span><input type="file" id="gUpload" accept="image/*" multiple></label></div>
+          <small class="hint">Click a library photo to add it, or upload new photos (several at once).</small></div>
+      </div>
+      <div class="dr-sec" style="margin-top:18px"><h4>Photos in this album</h4><div id="gPhotos" class="g-photos"></div></div>
+      <div class="err" id="cmsErr"></div>
+      ${a.id ? `<div class="danger-zone"><button class="btn btn-red btn-sm" id="cmsDelete">Delete this album</button></div>` : ''}`;
+    openDrawer(a.id ? 'Edit album' : 'New album', a.id || 'Photo gallery', body, footer(a.id ? 'Save changes' : 'Create album'));
+    const draw = () => {
+      $('#gPhotos').innerHTML = photos.map((p, i) => `
+        <div class="g-photo ${p.src === cover ? 'is-cover' : ''}">
+          <img src="${esc(p.src)}" alt="">
+          <div class="g-meta">
+            <input data-cap-en="${i}" placeholder="Caption (English)" value="${esc(p.caption.en)}">
+            <input data-cap-am="${i}" placeholder="Caption (Amharic)" value="${esc(p.caption.am)}">
+            <div class="g-actions">
+              <button type="button" class="btn btn-light btn-sm" data-cover="${i}">${p.src === cover ? '★ Cover' : 'Set as cover'}</button>
+              <button type="button" class="btn btn-light btn-sm" data-up="${i}" ${i === 0 ? 'disabled' : ''}>↑</button>
+              <button type="button" class="btn btn-light btn-sm" data-down="${i}" ${i === photos.length - 1 ? 'disabled' : ''}>↓</button>
+              <button type="button" class="btn btn-red btn-sm" data-remove="${i}">Remove</button>
+            </div>
+          </div>
+        </div>`).join('') || '<p class="hint">No photos yet. Add some above.</p>';
+    };
+    draw();
+    $('#gPhotos').addEventListener('input', e => {
+      const en = e.target.dataset.capEn, am = e.target.dataset.capAm;
+      if (en !== undefined) photos[+en].caption.en = e.target.value;
+      if (am !== undefined) photos[+am].caption.am = e.target.value;
+    });
+    $('#gPhotos').addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return;
+      const d = b.dataset;
+      if (d.cover !== undefined) cover = photos[+d.cover].src;
+      if (d.remove !== undefined) { const [r] = photos.splice(+d.remove, 1); if (r.src === cover) cover = photos[0]?.src || ''; }
+      if (d.up !== undefined) { const i = +d.up; [photos[i - 1], photos[i]] = [photos[i], photos[i - 1]]; }
+      if (d.down !== undefined) { const i = +d.down; [photos[i + 1], photos[i]] = [photos[i], photos[i + 1]]; }
+      draw();
+    });
+    $('#gLib').addEventListener('click', e => {
+      const b = e.target.closest('[data-add]'); if (!b) return;
+      photos.push({ src: b.dataset.add, caption: { en: '', am: '' } }); if (!cover) cover = b.dataset.add; draw();
+    });
+    $('#gUpload').addEventListener('change', async e => {
+      for (const f of [...e.target.files].slice(0, 10)) {
+        try { const src = await shrinkImage(f, 1600, .78); photos.push({ src, caption: { en: '', am: '' } }); if (!cover) cover = src; }
+        catch (err) { showErr(`Could not read ${f.name}.`); }
+      }
+      e.target.value = ''; draw();
+    });
+    if (a.id) $('#cmsDelete').addEventListener('click', () => {
+      if (!confirm('Delete this album and its photos from the website?')) return;
+      saveContent('gallery', getContent('gallery').filter(x => x.id !== a.id)); closeDrawer(); refresh(); toast('Album deleted');
+    });
+    wire(() => {
+      if (!val('gTitleEn') || !val('gDate')) return showErr('Enter the English album title and date.');
+      if (!photos.length) return showErr('Add at least one photo.');
+      const item = { ...a, id: a.id || newId('g'), date: val('gDate'), published: $('#gPub').checked, cover: cover || photos[0].src,
+        title: { en: val('gTitleEn'), am: val('gTitleAm') }, description: { en: val('gDescEn'), am: val('gDescAm') }, photos };
+      const all = getContent('gallery').filter(x => x.id !== item.id); all.push(item);
+      if (!saveContent('gallery', all)) return showErr('Browser storage is full. Remove some uploaded photos or use library photos. (The production server has no such limit.)');
+      closeDrawer(); refresh(); toast(a.id ? 'Album updated' : 'Album created');
+    });
+  }
+
   /* =============================== wiring =============================== */
   const views = {
     'web-news': { title: 'News', sub: 'Articles shown on the public website', render: renderNews },
     'web-tenders': { title: 'Tenders', sub: 'Procurement notices on the public website', render: renderTenders },
     'web-vacancies': { title: 'Vacancies', sub: 'Job announcements on the public website', render: renderVacancies },
+    'web-gallery': { title: 'Photo gallery', sub: 'Albums shown on the public gallery page', render: renderGallery },
     'messages': { title: 'Messages', sub: 'Messages from the website contact form', render: renderMessages }
   };
   let current = null;
@@ -245,10 +340,11 @@ export function createCMS({ $, esc, icon, openDrawer, closeDrawer, toast }) {
   document.addEventListener('click', e => {
     if (e.target.closest('[data-stop]')) return;
     const n = e.target.closest('[data-cms-new]');
-    if (n) { ({ news: () => editNews(), tender: () => editTender(), vacancy: () => editVacancy() })[n.dataset.cmsNew](); return; }
+    if (n) { ({ news: () => editNews(), tender: () => editTender(), vacancy: () => editVacancy(), album: () => editAlbum() })[n.dataset.cmsNew](); return; }
     const a = e.target.closest('[data-edit-news]'); if (a) return editNews(a.dataset.editNews);
     const b = e.target.closest('[data-edit-tender]'); if (b) return editTender(b.dataset.editTender);
     const c = e.target.closest('[data-edit-vacancy]'); if (c) return editVacancy(c.dataset.editVacancy);
+    const g = e.target.closest('[data-edit-album]'); if (g) return editAlbum(g.dataset.editAlbum);
     const m = e.target.closest('[data-msg]'); if (m) return openMessage(m.dataset.msg);
   });
 

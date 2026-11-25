@@ -9,10 +9,18 @@ Frontend for the **South Ethiopia Regional State Transport and Road Development 
 | `news.html`, `news-detail.html?id=` | News list with categories and search; full article page with sharing and related news. |
 | `tenders.html`, `tender-detail.html?id=` | Tenders (open / closed), with reference, dates, fees, eligibility and documents; countdown to closing. |
 | `vacancies.html`, `vacancy-detail.html?id=` | Job vacancies with duties, qualifications and how to apply. |
+| `gallery.html`, `gallery.html?album=` | Photo albums with a full-screen viewer (keyboard and swipe). |
 | `contact.html` | Contact form: saved to the admin inbox and emailed to the Bureau by the backend. |
 | `index.html` → *Report an Issue* | Citizens submit complaints (zone, woreda, location, photo) and track them with a tracking number. |
 | `login.html` | Staff sign-in for Bureau, zone, woreda, consultant and contractor accounts. |
 | `admin.html` | Project monitoring dashboard: KPIs, planned vs actual progress, monthly report submission, Contractor/Woreda → Consultant → Zone → Bureau approval workflow, issues, contractor ranking, citizen complaints, account management, CSV export. |
+
+## Annual plan (Bureau → zones → woredas)
+
+1. **Bureau** prepares the regional plan for the fiscal year (indicators, units, regional targets), splits each target across zones ("Split by zone size" fills it in proportionally) and sends it. Sending is only possible when every target is fully allocated.
+2. **Zone** acknowledges receipt, splits its targets across its woredas ("Split evenly" helper) and sends them.
+3. **Woreda** acknowledges and enters achievement per Ethiopian quarter (Q1 Hamle–Meskerem … Q4 Miyazya–Sene), then submits the quarterly report to the zone.
+4. Everyone sees plan vs. achievement at their level; the Bureau sees which zones and woredas received, acknowledged and reported. Progress is coloured against what is expected by the end of the current quarter. Export to CSV.
 
 ## Accounts and permissions (demo)
 
@@ -22,7 +30,7 @@ All demo accounts use the password `demo123`. The login page lists them for one-
 |---|---|---|---|
 | Bureau administrator | `admin` | Everything | Final approval of reports, handle all complaints, create any account, manage website news / tenders / vacancies, read contact messages |
 | Zone office | `zone.wolaita` | Projects, reports and complaints in its zone | Approve reports at zone stage, assign complaints to woredas, create woreda accounts in its zone |
-| Woreda office | `woreda.humbo` | Projects and complaints in its woreda | Submit monthly reports, resolve complaints |
+| Woreda office | `woreda.humbo` | Projects and complaints in its woreda | Submit monthly reports, resolve complaints, report annual plan achievement |
 | Consultant | `consultant1` | Projects it supervises | Verify reports (first review stage) |
 | Contractor | `contractora` | Its own projects | Submit and resubmit monthly reports |
 
@@ -60,6 +68,8 @@ src/js/site.js, icons.js    header/footer/language for inner public pages
 src/js/*-page.js            news, tenders, vacancies, contact pages
 src/js/admin-cms.js         admin: website content and messages
 src/js/admin-ai.js          admin: AI summary client
+src/js/admin-plan.js        admin: annual plan (Bureau → zones → woredas)
+src/js/gallery-page.js      public photo gallery
 server/index.js             Node backend (Claude API, SMTP, static files)
 src/js/main.js, admin.js,
   login.js                  page logic

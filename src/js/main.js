@@ -37,7 +37,7 @@ import { REGIONS, ZONE_AM, COMPLAINT_TYPES, COMPLAINT_STATUS, addComplaint, find
     'proj.demo':'ለማሳያ የቀረበ ናሙና መረጃ — ከክትትል ሲስተሙ በሚመጣ ቀጥታ መረጃ ይተካል።',
     'p.phys':'አካላዊ አፈፃፀም','p.fin':'የፋይናንስ አፈፃፀም','p.end':'ማጠናቀቂያ','p.empty':'ምንም ፕሮጀክት አልተገኘም።',
     'news.eyebrow':'ወቅታዊ ዜናዎች','news.title':'ከቢሮው የተገኙ ዜናዎችና መረጃዎች',
-    'tn.title':'ጨረታዎችና ግዢ','an.title':'የሥራ ማስታወቂያዎች','nav.vacancies':'የሥራ ማስታወቂያ','news.all':'ሁሉንም ዜናዎች ይመልከቱ','vc.all':'ሁሉም የሥራ ማስታወቂያዎች','tn.all':'ሁሉም ጨረታዎች','ct.send':'መልዕክት ይላኩልን','rm':'ተጨማሪ ያንብቡ','closes':'የሚዘጋበት','deadline':'ማብቂያ','pos':'ቦታ',
+    'tn.title':'ጨረታዎችና ግዢ','an.title':'የሥራ ማስታወቂያዎች','nav.vacancies':'የሥራ ማስታወቂያ','nav.gallery':'የፎቶ ማዕከል','gl.title':'ከመስክ የተወሰዱ ፎቶዎች','gl.eyebrow':'የፎቶ ማዕከል','gl.all':'ሁሉንም ፎቶዎች ይመልከቱ','gl.photos':'ፎቶዎች','news.all':'ሁሉንም ዜናዎች ይመልከቱ','vc.all':'ሁሉም የሥራ ማስታወቂያዎች','tn.all':'ሁሉም ጨረታዎች','ct.send':'መልዕክት ይላኩልን','rm':'ተጨማሪ ያንብቡ','closes':'የሚዘጋበት','deadline':'ማብቂያ','pos':'ቦታ',
     'rp.eyebrow':'የዜጎች አስተያየት','rp.title':'የመንገድ ችግር አይተዋል? ለቢሮው ያሳውቁ።','rp.text':'ጉድጓዶች፣ የተጎዱ ድልድዮች፣ የተዘጉ የውሃ መውረጃዎች፣ ፍትሐዊ ያልሆነ ታሪፍ ወይም የአገልግሎት ቅሬታ — እያንዳንዱ ጥቆማ የመከታተያ ቁጥር ይሰጠዋል።',
     'rp.l1':'የመከታተያ ቁጥር ወዲያውኑ ያግኙ','rp.l2':'ለሚመለከተው የዞንና የወረዳ ጽ/ቤት ይተላለፋል','rp.l3':'በመከታተያ ቁጥርዎ ምላሹን በኦንላይን ይከታተሉ',
     'rp.name':'ሙሉ ስም','rp.phone':'ስልክ','rp.type':'የችግሩ አይነት','rp.zone':'ዞን / ወረዳ','rp.desc':'ዝርዝር መግለጫ','rp.submit':'ጥቆማ ይላኩ',
@@ -75,7 +75,7 @@ import { REGIONS, ZONE_AM, COMPLAINT_TYPES, COMPLAINT_STATUS, addComplaint, find
     document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = t(el.dataset.i18nPh));
     document.querySelectorAll('[data-i18n-opts]').forEach(el => t(el.dataset.i18nOpts).forEach((txt, i) => el.options[i] && (el.options[i].text = txt)));
     document.querySelectorAll('.lang-switch button').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
-    renderProjects(); renderNews(); renderNotices(); fillZones(); if (lastTrack) showTrack(lastTrack);
+    renderProjects(); renderNews(); renderNotices(); renderStrip(); fillZones(); if (lastTrack) showTrack(lastTrack);
   }
   document.querySelectorAll('.lang-switch button').forEach(b => b.addEventListener('click', () => {
     lang = b.dataset.lang; try { localStorage.setItem('lang', lang); } catch (e) {}
@@ -132,6 +132,15 @@ import { REGIONS, ZONE_AM, COMPLAINT_TYPES, COMPLAINT_STATUS, addComplaint, find
           <div><span class="tag ${escH(n.tag)}">${escH(L(n.cat, lang))}</span><h4>${escH(L(n.title, lang))}</h4><span class="news-date">${cal}${escH(fmtDay(n.date))}</span></div>
         </a>`).join('')}
       </div>`;
+  }
+
+  /* ---------------- Gallery strip ---------------- */
+  function renderStrip() {
+    const photos = getContent('gallery').filter(a => a.published !== false)
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .flatMap(a => a.photos.map(p => ({ ...p, album: a.id }))).slice(0, 5);
+    document.getElementById('galleryStrip').innerHTML = photos.map(p =>
+      `<a href="gallery.html?album=${encodeURIComponent(p.album)}" class="strip-item"><img src="${escH(p.src)}" alt="${escH(L(p.caption, lang))}" loading="lazy"><span>${escH(L(p.caption, lang))}</span></a>`).join('');
   }
 
   /* ---------------- Notices ---------------- */

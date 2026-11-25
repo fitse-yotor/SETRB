@@ -5,11 +5,11 @@
   "type": "module",
   "description": "Portal and project monitoring dashboard for the South Ethiopia Regional Transport & Road Development Bureau",
   "scripts": {
-    "dev": "vite",
+    "dev": "node init && vite",
     "server": "node --env-file-if-exists=.env server/index.js",
-    "build": "vite build",
+    "build": "node init && vite build",
     "preview": "vite preview",
-    "start": "vite build && node --env-file-if-exists=.env server/index.js"
+    "start": "node init && vite build && node --env-file-if-exists=.env server/index.js"
   },
   "devDependencies": {
     "vite": "^6.4.6"

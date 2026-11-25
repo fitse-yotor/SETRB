@@ -161,16 +161,18 @@ export function shrinkImage(file, max = 900, q = .7) {
 /* =================================================================
    Website content (news, tenders, vacancies) and contact messages
    ================================================================= */
-import { SEED_NEWS, SEED_TENDERS, SEED_VACANCIES, SEED_MESSAGES } from './content-seed.js';
+import { SEED_NEWS, SEED_TENDERS, SEED_VACANCIES, SEED_MESSAGES, SEED_GALLERY } from './content-seed.js';
+const SEEDS = { news: SEED_NEWS, tenders: SEED_TENDERS, vacancies: SEED_VACANCIES, gallery: SEED_GALLERY };
 const K_CONTENT = 'setrb-content-v1', K_MESSAGES = 'setrb-messages-v1';
 
 export function getContent(type) {
   let c = read(K_CONTENT, null);
-  if (!c || typeof c !== 'object') { c = { news: SEED_NEWS, tenders: SEED_TENDERS, vacancies: SEED_VACANCIES }; write(K_CONTENT, c); }
+  if (!c || typeof c !== 'object') c = {};
+  if (!Array.isArray(c[type]) && SEEDS[type]) { c[type] = SEEDS[type]; write(K_CONTENT, c); }  // first use, or a type added later
   return c[type] || [];
 }
 export function saveContent(type, list) {
-  const c = read(K_CONTENT, null) || { news: SEED_NEWS, tenders: SEED_TENDERS, vacancies: SEED_VACANCIES };
+  const c = read(K_CONTENT, null) || { ...SEEDS };
   c[type] = list;
   return write(K_CONTENT, c);
 }

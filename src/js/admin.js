@@ -1,6 +1,7 @@
 import "../css/admin.css";
 import "./admin-data.js";
 import { createCMS } from "./admin-cms.js";
+import { createPlans, resetPlans } from "./admin-plan.js";
 import { requestSummary, mdToHtml } from "./admin-ai.js";
 import { currentUser, logout, getUsers, saveUsers, getComplaints, saveComplaints, REGIONS, ROLES, COMPLAINT_TYPES, COMPLAINT_STATUS, scopeLabel, resetShared, fmtDate } from "./shared.js";
 (function () {
@@ -54,6 +55,7 @@ import { currentUser, logout, getUsers, saveUsers, getComplaints, saveComplaints
   const canComplaints = ['bureau', 'zone', 'woreda'].includes(role);
   const canAccounts = ['bureau', 'zone'].includes(role);
   const canCMS = role === 'bureau';
+  const canPlan = ['bureau', 'zone', 'woreda'].includes(role);
 
   /* ---------------- derived project metrics ---------------- */
   const projById = id => D.projects.find(p => p.id === id);
@@ -346,6 +348,8 @@ import { currentUser, logout, getUsers, saveUsers, getComplaints, saveComplaints
     const iN = state.issues.filter(i => i.status === 'open' && visible(i.projectId)).length;
     const cN = canComplaints ? getComplaints().filter(c => complaintInScope(c) && ['received', 'assigned'].includes(c.status)).length : 0;
     $('#navComplaints').textContent = cN; $('#navComplaints').style.display = cN ? '' : 'none';
+    const pN = canPlan ? PLAN.pending() : 0;
+    $('#navPlan').textContent = pN; $('#navPlan').style.display = pN ? '' : 'none';
     const mN = canCMS ? CMS.unread() : 0;
     $('#navMessages').textContent = mN; $('#navMessages').style.display = mN ? '' : 'none';
     $('#navIssues').textContent = iN; $('#navIssues').style.display = iN ? '' : 'none';
@@ -832,7 +836,7 @@ import { currentUser, logout, getUsers, saveUsers, getComplaints, saveComplaints
   });
 
   /* ---------------- role-based navigation ---------------- */
-  [['#sbAdminLabel', canAccounts], ['#sbAdminNav', canAccounts], ['#sbWebLabel', canCMS], ['#sbWebNav', canCMS], ['#sbCitizenLabel', canComplaints], ['#navComplaints', canComplaints], ['#sbActionsLabel', canSubmit], ['#sbActionsNav', canSubmit]]
+  [['#sbAdminLabel', canAccounts], ['#sbAdminNav', canAccounts], ['#sbWebLabel', canCMS], ['#sbWebNav', canCMS], ['#sbPlanLabel', canPlan], ['#sbPlanNav', canPlan], ['#sbCitizenLabel', canComplaints], ['#navComplaints', canComplaints], ['#sbActionsLabel', canSubmit], ['#sbActionsNav', canSubmit]]
     .forEach(([sel, show]) => { if (!show) $(sel).classList.add('hidden'); });
   if (!canComplaints) $('a[data-view="complaints"]').classList.add('hidden');
   $$('a[href="#new"]').forEach(a => a.classList.toggle('hidden', !canSubmit));
@@ -902,6 +906,8 @@ import { currentUser, logout, getUsers, saveUsers, getComplaints, saveComplaints
   /* ---------------- routing ---------------- */
   const CMS = createCMS({ $, esc, icon, openDrawer, closeDrawer, toast });
   CMS.onChange(updateBadges);
+  const PLAN = createPlans({ $, esc, icon, openDrawer, closeDrawer, toast, ME, CUR });
+  PLAN.onChange(updateBadges);
   const TITLES = {
     dashboard: ['Dashboard', `Fiscal year ${D.FY} · Reporting month: ${MONTHS[CUR]}`],
     projects: ['Projects', 'All regional road and bridge projects'],
@@ -909,6 +915,7 @@ import { currentUser, logout, getUsers, saveUsers, getComplaints, saveComplaints
     issues: ['Issues & Risks', 'Problems blocking project delivery'],
     contractors: ['Contractors', 'Performance across active projects'],
     complaints: ['Complaints', 'Citizen complaints from the public portal'],
+    plans: [PLAN.view.title, PLAN.view.sub],
     ...Object.fromEntries(Object.entries(CMS.views).map(([k, v]) => [k, [v.title, v.sub]])),
     accounts: ['Accounts', role === 'zone' ? `Woreda office accounts in ${ME.zone} Zone` : 'Bureau, zone, woreda, consultant and contractor accounts']
   };
@@ -917,7 +924,7 @@ import { currentUser, logout, getUsers, saveUsers, getComplaints, saveComplaints
     const h = location.hash.slice(1) || 'dashboard';
     if (h === 'new') { if (!$('#drawer').classList.contains('show')) openNewReport(); return; }
     let v = TITLES[h] ? h : 'dashboard';
-    if ((v === 'complaints' && !canComplaints) || (v === 'accounts' && !canAccounts) || (CMS.views[v] && !canCMS)) v = 'dashboard';
+    if ((v === 'complaints' && !canComplaints) || (v === 'accounts' && !canAccounts) || (CMS.views[v] && !canCMS) || (v === 'plans' && !canPlan)) v = 'dashboard';
     currentView = v;
     $$('.view').forEach(s => s.classList.toggle('active', s.id === 'view-' + v));
     $$('.sb-nav a[data-view]').forEach(a => a.classList.toggle('active', a.dataset.view === v));
@@ -927,6 +934,7 @@ import { currentUser, logout, getUsers, saveUsers, getComplaints, saveComplaints
   }
   function renderView(v) {
     if (CMS.views[v]) return CMS.render(v);
+    if (v === 'plans') return PLAN.render($('#view-plans'));
     ({ dashboard: renderDashboard, projects: renderProjects, reports: renderReports, issues: renderIssues, contractors: renderContractors, complaints: renderComplaints, accounts: renderAccounts })[v]();
   }
   function renderAll() { renderView(currentView); updateBadges(); }
@@ -937,7 +945,7 @@ import { currentUser, logout, getUsers, saveUsers, getComplaints, saveComplaints
 
   $('#globalSearch').addEventListener('input', e => { $('#pSearch').value = e.target.value; if (currentView !== 'projects') location.hash = '#projects'; else renderProjects(); });
   $('#bellBtn').addEventListener('click', () => { location.hash = '#dashboard'; setTimeout(() => $('#alertList').scrollIntoView({ behavior: 'smooth', block: 'center' }), 50); });
-  $('#resetDemo').addEventListener('click', e => { e.preventDefault(); state = freshState(); save(); resetShared(); location.reload(); });
+  $('#resetDemo').addEventListener('click', e => { e.preventDefault(); state = freshState(); save(); resetShared(); resetPlans(); location.reload(); });
   let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => currentView === 'dashboard' && renderDashboard(), 150); });
 
   updateBadges();

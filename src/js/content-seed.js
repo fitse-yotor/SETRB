@@ -134,3 +134,37 @@ export const SEED_MESSAGES = [
   { id: 'm-1', at: '2026-11-24T09:12:00', name: 'Hana G.', email: 'hana@example.com', phone: '0911 000 010', subject: 'Tender', message: 'Where can we buy the bid document for the gravel road Lot 3 tender? Can it be collected at the zone office?', read: false },
   { id: 'm-2', at: '2026-11-22T15:40:00', name: 'Yonas A.', email: 'yonas@example.com', phone: '', subject: 'Vacancy', message: 'I would like to know if the Civil Engineer vacancy accepts applicants with an MSc in Structural Engineering.', read: true }
 ];
+
+/* Photo gallery albums. `src` can be a path in public/ or an uploaded image. */
+const ph = (n, en, am) => ({ src: img(n), caption: { en, am } });
+export const SEED_GALLERY = [
+  {
+    id: 'g-1', date: '2026-11-20', published: true, cover: img('road-inspection'),
+    title: { en: 'Field visits to road projects', am: 'የመንገድ ፕሮጀክቶች የመስክ ጉብኝት' },
+    description: { en: 'Bureau leadership and engineers following up road and bridge construction on site.', am: 'የቢሮው አመራርና መሐንዲሶች የመንገድና የድልድይ ግንባታን በመስክ ሲከታተሉ።' },
+    photos: [
+      ph('road-inspection', 'Inspecting a road under construction', 'በግንባታ ላይ ያለ መንገድ ጉብኝት'),
+      ph('bridge-site-visit', 'Reviewing bridge foundation works', 'የድልድይ መሠረት ሥራ ግምገማ'),
+      ph('road-consultation', 'Discussion with site engineers', 'ከሳይት መሐንዲሶች ጋር ውይይት')
+    ]
+  },
+  {
+    id: 'g-2', date: '2026-11-08', published: true, cover: img('project-inauguration'),
+    title: { en: 'Road inauguration ceremony', am: 'የመንገድ ምረቃ ሥነ-ሥርዓት' },
+    description: { en: 'Officials and residents celebrate the completion of a new rural road.', am: 'ኃላፊዎችና ነዋሪዎች የአዲሱን የገጠር መንገድ መጠናቀቅ አከበሩ።' },
+    photos: [
+      ph('project-inauguration', 'Cutting the ribbon to open the road', 'መንገዱን ለመመረቅ ሪባን ሲቆረጥ'),
+      ph('head-field-visit', 'The Bureau Head addressing residents', 'የቢሮ ኃላፊው ለነዋሪዎች ንግግር ሲያደርጉ')
+    ]
+  },
+  {
+    id: 'g-3', date: '2026-11-02', published: true, cover: img('head-field-visit'),
+    title: { en: 'Community consultations', am: 'የማኅበረሰብ ውይይቶች' },
+    description: { en: 'Listening to residents about road and transport needs.', am: 'ስለ መንገድና ትራንስፖርት ፍላጎቶች ነዋሪዎችን ማዳመጥ።' },
+    photos: [
+      ph('head-field-visit', 'Community discussion with the Bureau Head', 'ከቢሮ ኃላፊው ጋር የማኅበረሰብ ውይይት'),
+      ph('road-consultation', 'Woreda officials explain local priorities', 'የወረዳ ኃላፊዎች የአካባቢውን ቅድሚያዎች ሲያስረዱ'),
+      ph('road-inspection', 'Walking the planned road alignment', 'የታቀደውን የመንገድ መስመር በእግር መጎብኘት')
+    ]
+  }
+];
